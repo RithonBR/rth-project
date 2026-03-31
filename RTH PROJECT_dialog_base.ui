@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>rthprojectDialogBase</class>
+ <widget class="QDialog" name="rthprojectDialogBase">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1200</width>
+    <height>680</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>RTH API BROWSER</string>
+  </property>
+  <widget class="QLabel" name="lbl_satelite">
+   <property name="geometry">
+    <rect>
+     <x>8</x>
+     <y>8</y>
+     <width>115</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Satélite / Satellite:</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="combo_satelite">
+   <property name="geometry">
+    <rect>
+     <x>127</x>
+     <y>8</y>
+     <width>145</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_colecao">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>8</y>
+     <width>130</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Coleção / Collection:</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="combo_colecao">
+   <property name="geometry">
+    <rect>
+     <x>414</x>
+     <y>8</y>
+     <width>195</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_data_ini">
+   <property name="geometry">
+    <rect>
+     <x>618</x>
+     <y>8</y>
+     <width>158</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Data Inicial / Start Date:</string>
+   </property>
+  </widget>
+  <widget class="QDateEdit" name="date_inicial">
+   <property name="geometry">
+    <rect>
+     <x>780</x>
+     <y>8</y>
+     <width>110</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="dateTime">
+    <datetime>
+     <hour>0</hour>
+     <minute>0</minute>
+     <second>0</second>
+     <year>2025</year>
+     <month>10</month>
+     <day>1</day>
+    </datetime>
+   </property>
+   <property name="displayFormat">
+    <string>dd/MM/yyyy</string>
+   </property>
+   <property name="calendarPopup">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_data_fin">
+   <property name="geometry">
+    <rect>
+     <x>900</x>
+     <y>8</y>
+     <width>138</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Data Final / End Date:</string>
+   </property>
+  </widget>
+  <widget class="QDateEdit" name="date_final">
+   <property name="geometry">
+    <rect>
+     <x>1042</x>
+     <y>8</y>
+     <width>150</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="dateTime">
+    <datetime>
+     <hour>0</hour>
+     <minute>0</minute>
+     <second>0</second>
+     <year>2025</year>
+     <month>1</month>
+     <day>1</day>
+    </datetime>
+   </property>
+   <property name="displayFormat">
+    <string>dd/MM/yyyy</string>
+   </property>
+   <property name="calendarPopup">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_composicao">
+   <property name="geometry">
+    <rect>
+     <x>8</x>
+     <y>38</y>
+     <width>152</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Composição / Composition:</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="combo_composicao">
+   <property name="geometry">
+    <rect>
+     <x>164</x>
+     <y>38</y>
+     <width>200</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_nuvens">
+   <property name="geometry">
+    <rect>
+     <x>444</x>
+     <y>40</y>
+     <width>212</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Limiar de Nuvens / Cloud Threshold:</string>
+   </property>
+  </widget>
+  <widget class="QSlider" name="slider_nuvem">
+   <property name="geometry">
+    <rect>
+     <x>660</x>
+     <y>40</y>
+     <width>150</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="minimum">
+    <number>0</number>
+   </property>
+   <property name="maximum">
+    <number>100</number>
+   </property>
+   <property name="value">
+    <number>30</number>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_nuvem_val">
+   <property name="geometry">
+    <rect>
+     <x>814</x>
+     <y>40</y>
+     <width>44</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>30%</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_puxar">
+   <property name="geometry">
+    <rect>
+     <x>960</x>
+     <y>35</y>
+     <width>232</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Puxar Imagens / Fetch Images</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_status">
+   <property name="geometry">
+    <rect>
+     <x>8</x>
+     <y>68</y>
+     <width>1184</width>
+     <height>18</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string>color: #444; font-style: italic;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="Line" name="line_sep">
+   <property name="geometry">
+    <rect>
+     <x>8</x>
+     <y>90</y>
+     <width>1184</width>
+     <height>3</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QScrollArea" name="scroll_resultados">
+   <property name="geometry">
+    <rect>
+     <x>8</x>
+     <y>96</y>
+     <width>1184</width>
+     <height>448</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string>QScrollArea { background: #111; border: 1px solid #333; }</string>
+   </property>
+   <property name="verticalScrollBarPolicy">
+    <enum>Qt::ScrollBarAsNeeded</enum>
+   </property>
+   <property name="horizontalScrollBarPolicy">
+    <enum>Qt::ScrollBarAsNeeded</enum>
+   </property>
+   <property name="widgetResizable">
+    <bool>true</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_pasta">
+   <property name="geometry">
+    <rect>
+     <x>8</x>
+     <y>552</y>
+     <width>105</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Pasta (Folder):</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="edit_pasta">
+   <property name="geometry">
+    <rect>
+     <x>117</x>
+     <y>552</y>
+     <width>991</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="placeholderText">
+    <string>Pasta de destino para download / Output folder for download</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_pasta">
+   <property name="geometry">
+    <rect>
+     <x>1112</x>
+     <y>552</y>
+     <width>80</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>...</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_virtualizar">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>8</x>
+     <y>578</y>
+     <width>590</width>
+     <height>36</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Virtualizar no QGIS / Virtualize in QGIS</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_baixar">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>606</x>
+     <y>578</y>
+     <width>586</width>
+     <height>36</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Baixar Imagem / Download Image</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_progresso">
+   <property name="geometry">
+    <rect>
+     <x>8</x>
+     <y>622</y>
+     <width>1184</width>
+     <height>18</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string>color: #0055aa;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QProgressBar" name="progress_bar">
+   <property name="geometry">
+    <rect>
+     <x>8</x>
+     <y>644</y>
+     <width>1184</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+   <property name="value">
+    <number>0</number>
+   </property>
+   <property name="textVisible">
+    <bool>true</bool>
+   </property>
+   <property name="format">
+    <string>%v / %m</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

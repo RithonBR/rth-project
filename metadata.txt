@@ -1,0 +1,49 @@
+# This file contains metadata for your plugin.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=RTH PROJECT
+qgisMinimumVersion=3.40.7
+qgisMaximumVersion = 4.99
+description=O plugin foi desenvolvido para auxiliar profissionais de sensoriamento remoto em suas atividades do dia a dia, reunindo 13 ferramentas práticas e integradas que otimizam fluxos de trabalho dentro do QGIS. Entre suas funcionalidades, destaca-se a ferramenta de visualização e download de imagens de diferentes satélites, como Sentinel-2, Landsat, Amazônia e CBERS, realizando automaticamente a identificação do sistema de referência espacial (EPSG) mais adequado para a região selecionada. O plugin também oferece recursos para obtenção rápida de coordenadas geográficas (latitude e longitude) diretamente no mapa, além da copia do GeoJSON a partir de polígonos desenhados. Conta ainda com a possibilidade de envio de pontos para o Google Earth Pro, facilitando a integração entre plataformas. Outra funcionalidade importante é a visualização e download de modelos digitais de elevação (DEM) para áreas de interesse. Para análises espaciais, disponibiliza uma ferramenta de cálculo de área em hectares utilizando a projeção mais adequada da região, garantindo maior precisão e agilidade. O plugin também permite importar pontos de GPS e convertê-los em polígonos, bem como gerar pontos georreferenciados espaçados automaticamente dentro de áreas delimitadas. Adicionalmente, inclui ferramentas para importação e exportação rápida de dados no formato CSV, além da criação de linhas de plantio ou colheita em polígonos, contribuindo diretamente para aplicações no contexto agrícola e de geotecnologias.
+version=1.1.4
+author=Luciano "Rithon" Junior
+email=lucianoufscagve@gmail.com
+
+about=The plugin was developed to support remote sensing professionals in their daily activities, bringing together 13 practical and integrated tools that streamline workflows within QGIS. Among its main features is a tool for visualization and download of imagery from multiple satellite sources, including Sentinel-2, Landsat, Amazônia, and CBERS, automatically identifying the most appropriate spatial reference system (EPSG) for the selected region. It also provides tools for quickly retrieving geographic coordinates (latitude and longitude) directly from the map, As well as copying GeoJSON from drawn polygons to the clipboard. In addition, the plugin enables sending points to Google Earth Pro, facilitating integration between platforms. Another key feature is the ability to visualize and download Digital Elevation Models (DEM) for areas of interest. For spatial analysis, it includes a fast and accurate area calculation tool (in hectares) that uses the most suitable projection for the region. The plugin also allows importing GPS points and converting them into polygons, as well as generating evenly spaced georeferenced points within selected areas. Furthermore, it offers tools for quick CSV import and export, along with the creation of planting or harvesting lines within polygons, making it especially useful for agricultural and geospatial applications.
+
+tracker=https://github.com/RithonBR/rth-project/issues
+repository=https://github.com/RithonBR/rth-project
+# End of mandatory metadata
+
+# Recommended items:
+
+hasProcessingProvider=no
+# Uncomment the following line and add your changelog:
+# changelog=
+
+# Tags are comma separated with spaces allowed
+tags=coordinate, capture, latitude, longitude, raster, satellite, sentinel, landsat, amazonia, cbers, vrt, imagery, stac, web, dem, python
+
+
+homepage=https://rithon.com.br/
+category=Plugins
+icon=icon-geral.png
+# experimental flag
+experimental=False
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+
+# Since QGIS 3.8, a comma separated list of plugins to be installed
+# (or upgraded) can be specified.
+# Check the documentation for more information.
+# plugin_dependencies=
+
+Category of the plugin: Raster, Vector, Database or Web
+# category= coordinate, capture, latitude, longitude, raster, satellite, sentinel, landsat, amazonia, cbers, vrt, imagery, stac, web, dem
+
+# If the plugin can run on QGIS Server.
+server=False
+
