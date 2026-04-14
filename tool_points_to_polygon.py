@@ -28,7 +28,7 @@ from qgis.PyQt.QtWidgets import (
     QDoubleSpinBox, QGroupBox, QRadioButton,
     QButtonGroup, QCheckBox, QMessageBox,
 )
-from qgis.PyQt.QtCore import Qt, QUrl
+from qgis.PyQt.QtCore import Qt, QUrl, QVariant
 
 # Módulos QGIS / QGIS modules
 from qgis.core import (
@@ -36,6 +36,9 @@ from qgis.core import (
     QgsProject,
     QgsCoordinateReferenceSystem,
     QgsWkbTypes,
+    QgsFeature,
+    QgsField,
+    QgsFields,
 )
 # Widget de seleção de CRS / CRS selection widget
 from qgis.gui import QgsProjectionSelectionWidget
@@ -137,6 +140,51 @@ class PointsToPolygonDialog(QDialog):
         # Connect radios to enable/disable CSV controls (initial call after _btn_ok is created)
         self.radio_csv.toggled.connect(self._on_source_toggled)
 
+        # ── Modo de Geração / Generation Mode ─────────────────────────────
+        grp_mode = QGroupBox('Modo de Geração / Generation Mode')
+        lay_mode = QVBoxLayout()
+        lay_mode.setSpacing(6)
+
+        self._bg_mode = QButtonGroup(self)
+
+        # Opção 1: um polígono com todos os pontos / Option 1: single polygon from all points
+        self.radio_single = QRadioButton(
+            'Um polígono com todos os pontos / Single polygon from all points'
+        )
+        self.radio_single.setChecked(True)
+        self._bg_mode.addButton(self.radio_single, 0)
+        lay_mode.addWidget(self.radio_single)
+
+        # Opção 2: múltiplos polígonos agrupados por coluna ID / Option 2: multiple polygons grouped by ID column
+        self.radio_multi = QRadioButton(
+            'Múltiplos polígonos por identificador / Multiple polygons by ID'
+        )
+        self._bg_mode.addButton(self.radio_multi, 1)
+        lay_mode.addWidget(self.radio_multi)
+
+        # Seletor de coluna identificadora (visível apenas no modo múltiplo)
+        # ID column selector (visible only in multiple mode)
+        id_row = QHBoxLayout()
+        id_row.setSpacing(6)
+        self.lbl_id_col = QLabel('Coluna ID / ID Column:')
+        self.lbl_id_col.setStyleSheet('font-size:10px; margin-left:16px;')
+        self.combo_id = QComboBox()
+        self.combo_id.setToolTip(
+            'Pontos com o mesmo valor nesta coluna formarão um polígono / '
+            'Points sharing the same value in this column will form one polygon'
+        )
+        id_row.addWidget(self.lbl_id_col)
+        id_row.addWidget(self.combo_id, 1)
+        lay_mode.addLayout(id_row)
+
+        grp_mode.setLayout(lay_mode)
+        root.addWidget(grp_mode)
+
+        # Conecta o rádio de modo para mostrar/esconder o seletor de ID
+        # Connect mode radio to show/hide ID selector
+        self.radio_multi.toggled.connect(self._on_mode_toggled)
+        self._on_mode_toggled(False)  # Estado inicial / Initial state
+
         # ── Parâmetros Forma Côncava / Concave Hull parameters ─────────────
         grp_hull = QGroupBox('Forma Côncava / Concave Hull')
         lay_hull = QVBoxLayout()
@@ -201,7 +249,20 @@ class PointsToPolygonDialog(QDialog):
         self.combo_lon.setEnabled(csv_checked)
         self.crs_widget.setEnabled(csv_checked)
         self._crs_label.setEnabled(csv_checked)
+        # Quando muda para camada ativa, popula combo_id com os campos da camada
+        # When switching to active layer, populate combo_id with layer fields
+        if not csv_checked:
+            active = self.iface.activeLayer()
+            if active and hasattr(active, 'fields'):
+                self.combo_id.clear()
+                for field in active.fields():
+                    self.combo_id.addItem(field.name())
         self._update_ok_state()
+
+    def _on_mode_toggled(self, multi_checked):
+        """Mostra ou esconde o seletor de coluna ID / Show or hide the ID column selector."""
+        self.lbl_id_col.setVisible(multi_checked)
+        self.combo_id.setVisible(multi_checked)
 
     def _update_ok_state(self):
         """Habilita OK apenas quando a fonte está pronta / Enable OK only when source is ready."""
@@ -233,12 +294,14 @@ class PointsToPolygonDialog(QDialog):
         self._csv_path = path
         self.edit_file.setText(path)
 
-        # Preenche combos / Fill combos
+        # Preenche combos de lat/lon e ID / Fill lat/lon and ID combos
         self.combo_lat.clear()
         self.combo_lon.clear()
+        self.combo_id.clear()
         for h in self._headers:
             self.combo_lat.addItem(h)
             self.combo_lon.addItem(h)
+            self.combo_id.addItem(h)
 
         # Auto-detecta colunas / Auto-detect columns
         lat_cands = ['latitude', 'lat', 'y']
@@ -295,6 +358,16 @@ class PointsToPolygonDialog(QDialog):
     def selected_crs(self):
         """Retorna o CRS selecionado pelo usuário / Returns user-selected CRS."""
         return self.crs_widget.crs()
+
+    @property
+    def multi_mode(self):
+        """True se o modo múltiplos polígonos por ID estiver ativo / True if multiple polygons by ID mode is active."""
+        return self.radio_multi.isChecked()
+
+    @property
+    def id_field(self):
+        """Nome da coluna identificadora no modo múltiplo / ID column name in multiple mode."""
+        return self.combo_id.currentText() if self.radio_multi.isChecked() else ''
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -362,43 +435,48 @@ class PointsToPolygonTool:
                 )
                 return
 
-        # ── Executa Forma Côncava / Run Concave Hull ──────────────────────
-        try:
-            result = processing.run(
-                'qgis:concavehull',
-                {
-                    'INPUT':           point_layer,
-                    'ALPHA':           dlg.alpha,
-                    'HOLES':           False,           # Sem buracos internos / No internal holes
-                    'NO_MULTIGEOMETRY': dlg.force_single,
-                    'OUTPUT':          'memory:Poligono_Concavo',
-                }
-            )
-            poly_layer = result['OUTPUT']
+        base_name = os.path.splitext(os.path.basename(dlg.csv_path))[0] if dlg.use_csv else point_layer.name()
 
-        except Exception as e:
-            QMessageBox.critical(
-                None, 'RTH',
-                f'Erro ao gerar forma côncava.\nError generating concave hull.\n{e}'
-            )
-            # Remove camada temporária se necessário / Remove temp layer if needed
+        # ── Modo múltiplos polígonos por ID / Multiple polygons by ID mode ─
+        if dlg.multi_mode:
+            poly_layer = self._run_multi(point_layer, dlg, base_name)
+        else:
+            # ── Modo único / Single mode ──────────────────────────────────
+            try:
+                result = processing.run(
+                    'qgis:concavehull',
+                    {
+                        'INPUT':            point_layer,
+                        'ALPHA':            dlg.alpha,
+                        'HOLES':            False,
+                        'NO_MULTIGEOMETRY': dlg.force_single,
+                        'OUTPUT':           'memory:Poligono_Concavo',
+                    }
+                )
+                poly_layer = result['OUTPUT']
+            except Exception as e:
+                QMessageBox.critical(
+                    None, 'RTH',
+                    f'Erro ao gerar forma côncava.\nError generating concave hull.\n{e}'
+                )
+                if temp_layer_added and not dlg.keep_points:
+                    QgsProject.instance().removeMapLayer(point_layer.id())
+                return
+
+        if poly_layer is None:
             if temp_layer_added and not dlg.keep_points:
                 QgsProject.instance().removeMapLayer(point_layer.id())
             return
 
         # ── Adiciona camada ao projeto / Add layer to project ─────────────
-        # Renomeia a camada de saída / Rename output layer
-        base_name = os.path.splitext(os.path.basename(dlg.csv_path))[0] if dlg.use_csv else point_layer.name()
         poly_layer.setName(f'Poligono_{base_name}_alpha{dlg.alpha:.2f}')
         QgsProject.instance().addMapLayer(poly_layer)
 
         # ── Gerencia camada de pontos temporária / Manage temporary point layer ──
         if temp_layer_added:
             if dlg.keep_points:
-                # Adiciona ao painel de camadas / Add to layer panel
                 QgsProject.instance().addMapLayer(point_layer)
             else:
-                # Remove do projeto — não é mais necessária / Remove from project — no longer needed
                 QgsProject.instance().removeMapLayer(point_layer.id())
 
         # ── Mensagem de sucesso / Success message ─────────────────────────
@@ -408,3 +486,90 @@ class PointsToPolygonTool:
             f'{feat_count} polígono(s) gerado(s) | limiar / threshold: {dlg.alpha:.2f}',
             level=0, duration=6,
         )
+
+    def _run_multi(self, point_layer, dlg, base_name):
+        """Gera um polígono por valor único da coluna ID / Generate one polygon per unique ID column value.
+
+        :param point_layer: camada de pontos de entrada / input point layer
+        :param dlg: diálogo com os parâmetros / dialog with parameters
+        :param base_name: nome base para a camada de saída / base name for output layer
+        :returns: camada de polígonos com campo ID, ou None em caso de erro / polygon layer with ID field, or None on error
+        :rtype: QgsVectorLayer | None
+        """
+        id_field = dlg.id_field
+        if not id_field:
+            QMessageBox.warning(None, 'RTH', 'Selecione a coluna ID.\nSelect the ID column.')
+            return None
+
+        # Coleta valores únicos do campo ID / Collect unique values of the ID field
+        unique_ids = []
+        seen = set()
+        for feat in point_layer.getFeatures():
+            val = feat[id_field]
+            if val not in seen:
+                seen.add(val)
+                unique_ids.append(val)
+
+        if not unique_ids:
+            QMessageBox.warning(None, 'RTH', 'Nenhum valor encontrado na coluna ID.\nNo values found in the ID column.')
+            return None
+
+        # Camada de saída com campo ID / Output layer with ID field
+        crs_authid = point_layer.crs().authid() or 'EPSG:4326'
+        out_layer = QgsVectorLayer(f'Polygon?crs={crs_authid}', 'multi_poly', 'memory')
+        out_fields = QgsFields()
+        out_fields.append(QgsField(id_field, QVariant.String))
+        out_layer.dataProvider().addAttributes(out_fields)
+        out_layer.updateFields()
+
+        skipped = 0
+        for uid in unique_ids:
+            # Cria camada temporária com os pontos deste ID / Create temp layer with points for this ID
+            temp = QgsVectorLayer(f'Point?crs={crs_authid}', 'temp_pts', 'memory')
+            temp.dataProvider().addAttributes(point_layer.fields())
+            temp.updateFields()
+
+            feats = [f for f in point_layer.getFeatures() if f[id_field] == uid]
+
+            # Concave hull precisa de pelo menos 3 pontos / Concave hull needs at least 3 points
+            if len(feats) < 3:
+                skipped += 1
+                continue
+
+            temp.dataProvider().addFeatures(feats)
+            temp.updateExtents()
+            QgsProject.instance().addMapLayer(temp, False)
+
+            try:
+                result = processing.run(
+                    'qgis:concavehull',
+                    {
+                        'INPUT':            temp,
+                        'ALPHA':            dlg.alpha,
+                        'HOLES':            False,
+                        'NO_MULTIGEOMETRY': dlg.force_single,
+                        'OUTPUT':           'memory:',
+                    }
+                )
+                hull = result['OUTPUT']
+                for hf in hull.getFeatures():
+                    new_feat = QgsFeature(out_layer.fields())
+                    new_feat.setGeometry(hf.geometry())
+                    new_feat[id_field] = str(uid)
+                    out_layer.dataProvider().addFeature(new_feat)
+            except Exception:
+                skipped += 1
+            finally:
+                QgsProject.instance().removeMapLayer(temp.id())
+
+        out_layer.updateExtents()
+
+        if skipped > 0:
+            self.iface.messageBar().pushMessage(
+                'RTH',
+                f'{skipped} grupo(s) ignorado(s) por ter menos de 3 pontos / '
+                f'{skipped} group(s) skipped for having fewer than 3 points',
+                level=1, duration=5,
+            )
+
+        return out_layer

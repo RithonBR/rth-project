@@ -145,6 +145,36 @@ class DEMDownloaderDialog(QDialog):
 
         self._sep(layout)
 
+        # ── Recorte / Clip ────────────────────────────────────────────────────
+        lbl_clip = QLabel('Recorte / Clip')
+        lbl_clip.setStyleSheet('font-weight:bold;')
+        layout.addWidget(lbl_clip)
+
+        clip_row = QHBoxLayout()
+        clip_row.setSpacing(8)
+
+        # Rádio: recortar pelo bbox desenhado / Radio: clip by drawn bbox
+        self.radio_clip_aoi = QRadioButton('Área de Interesse / Area of Interest')
+        self.radio_clip_aoi.setToolTip(
+            'Recorta o resultado exatamente pelo bbox desenhado / Clips result exactly to the drawn bbox')
+        self.radio_clip_aoi.setChecked(True)
+
+        # Rádio: manter a cena completa sem recorte / Radio: keep full tile without clipping
+        self.radio_clip_full = QRadioButton('Cena Completa / Full Scene')
+        self.radio_clip_full.setToolTip(
+            'Mantém o tile inteiro sem recortar / Keeps the full tile without clipping')
+
+        self._clip_group = QButtonGroup()
+        self._clip_group.addButton(self.radio_clip_aoi)
+        self._clip_group.addButton(self.radio_clip_full)
+
+        clip_row.addWidget(self.radio_clip_aoi)
+        clip_row.addWidget(self.radio_clip_full)
+        clip_row.addStretch()
+        layout.addLayout(clip_row)
+
+        self._sep(layout)
+
         # ── Tipo de dado — somente INPE / Data type — INPE only ──────────────
         # Container para poder esconder o bloco inteiro / Container to hide the whole block
         self.widget_type = QWidget()
@@ -449,9 +479,12 @@ class DEMDownloaderDialog(QDialog):
             self._reset_run_button()
             return
 
+        # Recortar pelo bbox ou cena completa / Clip by bbox or full scene
+        clip_bbox = self._bbox if self.radio_clip_aoi.isChecked() else None
+
         # Modo virtualizar / Virtualize mode
         if self.radio_virt.isChecked():
-            self._virtualize(items)
+            self._virtualize(items, clip_bbox)
             self._reset_run_button()
             return
 
@@ -478,7 +511,7 @@ class DEMDownloaderDialog(QDialog):
         self.lbl_progress.setText(
             'Iniciando {} tile(s)... / Starting {} tile(s)...'.format(len(items), len(items)))
 
-        self._thread = DownloadThread(items, out_dir, dst_srs=dst_srs)
+        self._thread = DownloadThread(items, out_dir, dst_srs=dst_srs, clip_bbox=clip_bbox)
         self._thread.progress.connect(self._on_progress)
         self._thread.finished.connect(self._on_finished)
         self._thread.error.connect(self._on_error)
@@ -494,12 +527,12 @@ class DEMDownloaderDialog(QDialog):
     # Virtualizar / Virtualize
     # ──────────────────────────────────────────────────────────────────────────
 
-    def _virtualize(self, items):
+    def _virtualize(self, items, clip_bbox=None):
         """Virtualiza tiles DEM reprojetando para o datum UTM regional / Virtualize DEM tiles reprojecting to regional UTM datum."""
         # Detecta o CRS UTM regional para esta área / Detect regional UTM CRS for this area
         dst_srs = self._get_dst_srs()
         # Virtualiza com reprojection via GDAL Warp VRT / Virtualize with reprojection via GDAL Warp VRT
-        loaded = virtualize_dem_items(items, dst_srs)
+        loaded = virtualize_dem_items(items, dst_srs, clip_bbox=clip_bbox)
 
         self.lbl_progress.setText(
             '{} tile(s) virtualizado(s) ({}) / {} tile(s) virtualized ({})'.format(

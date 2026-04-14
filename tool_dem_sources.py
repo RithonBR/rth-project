@@ -193,7 +193,28 @@ def get_copernicus_90m_items(bbox_wgs84):
 # Virtualização com reprojection UTM regional / Virtualization with regional UTM reprojection
 # ──────────────────────────────────────────────────────────────────────────────
 
-def virtualize_dem_items(items, dst_srs):
+def _bbox_to_output_bounds(bbox_wgs84, dst_srs_str):
+    """Projeta um QgsRectangle WGS84 para o CRS de destino e retorna como tupla GDAL outputBounds.
+    Projects a WGS84 QgsRectangle to the destination CRS and returns as GDAL outputBounds tuple.
+
+    :param bbox_wgs84: QgsRectangle em WGS84 / QgsRectangle in WGS84
+    :param dst_srs_str: string do CRS de destino, ex: 'EPSG:31982' / target CRS string
+    :returns: (xmin, ymin, xmax, ymax) no CRS de destino / in destination CRS
+    :rtype: tuple[float, float, float, float]
+    """
+    from qgis.core import QgsCoordinateTransform
+    src_crs = QgsCoordinateReferenceSystem('EPSG:4326')
+    dst_crs = QgsCoordinateReferenceSystem(dst_srs_str)
+    if src_crs.authid() == dst_crs.authid():
+        return (bbox_wgs84.xMinimum(), bbox_wgs84.yMinimum(),
+                bbox_wgs84.xMaximum(), bbox_wgs84.yMaximum())
+    t = QgsCoordinateTransform(src_crs, dst_crs, QgsProject.instance())
+    projected = t.transformBoundingBox(bbox_wgs84)
+    return (projected.xMinimum(), projected.yMinimum(),
+            projected.xMaximum(), projected.yMaximum())
+
+
+def virtualize_dem_items(items, dst_srs, clip_bbox=None):
     """Virtualiza tiles DEM reprojetando para o datum UTM regional via GDAL Warp VRT / Virtualize DEM tiles reprojecting to regional UTM datum via GDAL Warp VRT.
 
     Tenta reprojetar via GDAL Warp + VRT virtual (sem download).
@@ -202,6 +223,7 @@ def virtualize_dem_items(items, dst_srs):
 
     :param items: lista de (item_id, href) / list of (item_id, href)
     :param dst_srs: string do CRS de destino, ex: 'EPSG:31982' / target CRS string, e.g. 'EPSG:31982'
+    :param clip_bbox: QgsRectangle WGS84 para recorte, ou None para cena completa / WGS84 clip bbox, or None for full scene
     :returns: número de tiles carregados / number of tiles loaded
     :rtype: int
     """
@@ -209,6 +231,8 @@ def virtualize_dem_items(items, dst_srs):
     tmp     = tempfile.gettempdir()
     # CRS UTM regional para atribuir à camada / Regional UTM CRS to assign to the layer
     utm_crs = QgsCoordinateReferenceSystem(dst_srs)
+    # Projeta o bbox de recorte para o CRS de destino (se fornecido) / Project clip bbox to dst CRS (if provided)
+    output_bounds = _bbox_to_output_bounds(clip_bbox, dst_srs) if clip_bbox is not None else None
     loaded  = 0
 
     for item_id, href in items:
@@ -221,11 +245,15 @@ def virtualize_dem_items(items, dst_srs):
         if _gdal is not None:
             # Tenta criar VRT reprojetado no CRS regional / Try creating VRT reprojected to regional CRS
             try:
-                opts = _gdal.WarpOptions(
+                warp_kwargs = dict(
                     format='VRT',
                     dstSRS=dst_srs,    # Datum UTM regional detectado / Detected regional UTM datum
                     multithread=True,
                 )
+                # Adiciona recorte se solicitado / Add clipping if requested
+                if output_bounds is not None:
+                    warp_kwargs['outputBounds'] = output_bounds
+                opts = _gdal.WarpOptions(**warp_kwargs)
                 ds = _gdal.Warp(vrt_path, src, options=opts)
                 if ds:
                     ds.FlushCache()
@@ -264,13 +292,14 @@ class DownloadThread(QThread):
     # Sinal de erro com mensagem / Error signal with message
     error = pyqtSignal(str)
 
-    def __init__(self, items, output_dir, dst_srs='EPSG:4326'):
+    def __init__(self, items, output_dir, dst_srs='EPSG:4326', clip_bbox=None):
         """
         Inicializa a thread / Initialize thread.
 
         items      : list of (item_id: str, href: str)
-        output_dir : str  — pasta de destino / destination folder
-        dst_srs    : str  — CRS de destino regional, ex: 'EPSG:31982' / regional target CRS, e.g. 'EPSG:31982'
+        output_dir : str            — pasta de destino / destination folder
+        dst_srs    : str            — CRS de destino regional, ex: 'EPSG:31982' / regional target CRS
+        clip_bbox  : QgsRectangle   — bbox WGS84 para recorte, ou None para cena completa / WGS84 clip bbox or None
         """
         super().__init__()
         # Lista de itens a baixar / Items to download
@@ -279,6 +308,8 @@ class DownloadThread(QThread):
         self._output_dir = output_dir
         # CRS de destino para reprojection / Target CRS for reprojection
         self._dst_srs = dst_srs
+        # Bounds de recorte projetados para o dst_srs (None = cena completa) / Clip bounds in dst_srs (None = full scene)
+        self._output_bounds = _bbox_to_output_bounds(clip_bbox, dst_srs) if clip_bbox is not None else None
         # Flag de cancelamento / Cancellation flag
         self._cancelled = False
 
@@ -311,12 +342,16 @@ class DownloadThread(QThread):
                 # Try GDAL Warp: vsicurl → reprojected GeoTIFF
                 src = '/vsicurl/' + href
                 try:
-                    opts = _gdal.WarpOptions(
+                    warp_kwargs = dict(
                         format='GTiff',
                         dstSRS=self._dst_srs,   # Datum UTM regional / Regional UTM datum
                         creationOptions=['COMPRESS=LZW', 'TILED=YES', 'BIGTIFF=IF_SAFER'],
                         multithread=True,
                     )
+                    # Adiciona recorte se solicitado / Add clipping if requested
+                    if self._output_bounds is not None:
+                        warp_kwargs['outputBounds'] = self._output_bounds
+                    opts = _gdal.WarpOptions(**warp_kwargs)
                     ds = _gdal.Warp(out_path, src, options=opts)
                     if ds:
                         ds.FlushCache()

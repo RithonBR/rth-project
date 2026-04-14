@@ -28,7 +28,7 @@ from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, QUrl
 # Importações do Qt para ícones / Qt imports for icons
 from qgis.PyQt.QtGui import QIcon
 # Importação do Qt para ações da barra de ferramentas e abertura de URLs / Qt import for toolbar actions and URL opening
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QToolButton, QMenu
 # Abre URLs no navegador padrão do sistema / Opens URLs in the system default browser
 from qgis.PyQt.QtGui import QDesktopServices
 
@@ -50,6 +50,7 @@ from tool_export_csv import ExportGridCSVTool           # ferramenta Export CSV 
 from tool_import_csv import ImportCSVTool               # ferramenta Import CSV / Import CSV tool  # noqa: E402
 from tool_planting_lines import PlantingLinesTool       # ferramenta Linhas de Plantio/Colheita / Planting/Harvest Lines tool  # noqa: E402
 from tool_points_to_polygon import PointsToPolygonTool  # ferramenta Pontos de GPS para Polígono / GPS Points to Polygon tool  # noqa: E402
+from tool_layer_cycler import LayerCyclerTool           # ferramenta Alternar Camadas / Layer Cycler tool  # noqa: E402
 
 # Carrega dinamicamente o resources.py (nome de arquivo com espaço no diretório pai)
 # Dynamically load resources.py (filename with space in parent directory)
@@ -94,6 +95,7 @@ class rthproject:
         self.tool_import_csv = ImportCSVTool(iface)         # Import CSV
         self.tool_planting_lines = PlantingLinesTool(iface)    # Linhas de Plantio/Colheita / Planting/Harvest Lines
         self.tool_pts_to_poly = PointsToPolygonTool(iface)     # Pontos de GPS para Polígono / GPS Points to Polygon
+        self.tool_layer_cycler = LayerCyclerTool(iface)        # Alternar Camadas / Layer Cycler
 
         # Carrega dinamicamente o módulo de diálogo (nome com espaço) / Dynamically load dialog module (name with space)
         try:
@@ -179,6 +181,15 @@ class rthproject:
             self._icon('rthvegtime.png'),
             text=self.tr(u'RTH Vegtime'),
             callback=self.open_rth_vegtime,
+            parent=self.iface.mainWindow())
+
+        # ── RTH Climate Viewer ────────────────────────────────────────────────
+        # Botão que abre o app RTH Climate Viewer no navegador / Button that opens RTH Climate Viewer app in browser
+        _climate_icon = self._icon('rthclimate.png') if os.path.exists(self._icon('rthclimate.png')) else self._icon('icon.png')
+        self.add_action(
+            _climate_icon,
+            text=self.tr(u'RTH Climate Viewer'),
+            callback=self.open_rth_climate_viewer,
             parent=self.iface.mainWindow())
 
         # ── RTH API BROWSER ──────────────────────────────────────────────────
@@ -273,12 +284,73 @@ class rthproject:
             callback=self.tool_planting_lines.run,
             parent=self.iface.mainWindow())
 
+        # Registra todas as actions da toolbar nos atalhos de teclado do QGIS
+        # Register all toolbar actions in QGIS keyboard shortcuts
+        for action in self.actions:
+            self.iface.registerMainWindowAction(action, '')
+
+        # ── Funcionalidades Adicionais / Additional Features ──────────────────
+        # Botão com menu dropdown para ferramentas adicionais / Dropdown menu button for additional tools
+        self._additional_btn = QToolButton(self.iface.mainWindow())
+        _add_icon = self._icon('addfunc.png') if os.path.exists(self._icon('addfunc.png')) else self._icon('icon-geral.png')
+        self._additional_btn.setIcon(QIcon(_add_icon))
+        self._additional_btn.setToolTip(self.tr(u'Funcionalidades Adicionais / Additional Features'))
+        # Abre o menu ao clicar no botão / Opens menu on button click
+        self._additional_btn.setPopupMode(QToolButton.InstantPopup)
+
+        # Monta o menu de funcionalidades adicionais / Build additional features menu
+        self._additional_menu = QMenu(self._additional_btn)
+
+        # Ação: Alternar Camadas / Layer Cycler
+        # Pai é mainWindow para que o QGIS reconheça a action nos atalhos / Parent is mainWindow so QGIS recognizes the action in shortcuts
+        _cycle_icon = self._icon('layercycler.png') if os.path.exists(self._icon('layercycler.png')) else self._icon('icon-geral.png')
+        self._action_cycle = QAction(
+            QIcon(_cycle_icon),
+            self.tr(u'Alternar Camadas / Layer Cycler'),
+            self.iface.mainWindow())
+        self._action_cycle.setToolTip(
+            self.tr(u'Alterna a visibilidade das camadas selecionadas, de baixo para cima, a cada clique / '
+                    u'Cycles selected layer visibility bottom-to-top on each click'))
+        self._action_cycle.triggered.connect(self.tool_layer_cycler.cycle)
+        self._additional_menu.addAction(self._action_cycle)
+        # Registra a action nos atalhos de teclado do QGIS (sem atalho padrão)
+        # Register the action in QGIS keyboard shortcuts (no default shortcut)
+        self.iface.registerMainWindowAction(self._action_cycle, '')
+
+        # Ação: Resetar ciclo / Reset cycle
+        _reset_icon = self._icon('resetlayercycler.png') if os.path.exists(self._icon('resetlayercycler.png')) else self._icon('icon-geral.png')
+        self._action_cycle_reset = QAction(
+            QIcon(_reset_icon),
+            self.tr(u'Resetar ciclo de camadas / Reset Layer Cycle'),
+            self.iface.mainWindow())
+        self._action_cycle_reset.triggered.connect(self.tool_layer_cycler.reset)
+        self._additional_menu.addAction(self._action_cycle_reset)
+        # Registra também o reset nos atalhos de teclado / Register reset in keyboard shortcuts too
+        self.iface.registerMainWindowAction(self._action_cycle_reset, '')
+
+        self._additional_btn.setMenu(self._additional_menu)
+
+        # Adiciona o botão à barra de ferramentas do plugin / Add button to plugin toolbar
+        self._additional_widget_action = self.iface.addToolBarWidget(self._additional_btn)
+
     def unload(self):
         """Remove o plugin da interface do QGIS / Remove the plugin from the QGIS interface."""
-        # Remove cada ação do menu e da barra de ferramentas / Remove each action from menu and toolbar
+        # Remove cada ação do menu, toolbar e atalhos de teclado / Remove each action from menu, toolbar and keyboard shortcuts
         for action in self.actions:
             self.iface.removePluginMenu(self.menu, action)
             self.iface.removeToolBarIcon(action)
+            self.iface.unregisterMainWindowAction(action)
+        # Desregistra as actions dos atalhos de teclado do QGIS / Unregister actions from QGIS keyboard shortcuts
+        if hasattr(self, '_action_cycle'):
+            self.iface.unregisterMainWindowAction(self._action_cycle)
+        if hasattr(self, '_action_cycle_reset'):
+            self.iface.unregisterMainWindowAction(self._action_cycle_reset)
+        # Remove o botão de Funcionalidades Adicionais da toolbar / Remove Additional Features button from toolbar
+        if hasattr(self, '_additional_widget_action') and self._additional_widget_action:
+            from qgis.PyQt.QtWidgets import QToolBar
+            toolbar = self.iface.mainWindow().findChild(QToolBar, 'mPluginToolBar')
+            if toolbar:
+                toolbar.removeAction(self._additional_widget_action)
 
     def open_rth_series(self):
         """Abre o aplicativo RTH Series no navegador padrão / Open RTH Series app in the default browser."""
@@ -287,6 +359,10 @@ class rthproject:
     def open_rth_vegtime(self):
         """Abre o aplicativo RTH Series Veg Time no navegador padrão / Open RTH Series Veg Time app in the default browser."""
         QDesktopServices.openUrl(QUrl('https://luciano-ufsc.projects.earthengine.app/view/rthseriesvegtime'))
+
+    def open_rth_climate_viewer(self):
+        """Abre o aplicativo RTH Climate Viewer no navegador padrão / Open RTH Climate Viewer app in the default browser."""
+        QDesktopServices.openUrl(QUrl('https://luciano-ufsc.projects.earthengine.app/view/rthseriesclimateviewer'))
 
     def open_rth_ui(self):
         """Abre o diálogo principal do RTH API BROWSER / Open the main RTH API BROWSER dialog."""

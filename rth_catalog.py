@@ -17,26 +17,20 @@ SATELLITE_COLLECTIONS = {
 
     'Sentinel-2': [
         # Brazil Data Cube — INPE / Brazil Data Cube — INPE
-        ('S2-16D-2',            'Data Cube — Level-2A SR — 16 dias  [INPE/BDC] (Brazil only)'),
-        ('S2_L2A-1',            'Cena — Level-2A SR — COG  [INPE/BDC] (Brazil only)'),
+        ('S2_L2A-1',           'Sentinel-2 — Imagens  [INPE/BDC] (Brazil only)'),
+        ('S2-16D-2',           'Sentinel-2 — DataCube 16 dias  [INPE/BDC] (Brazil only)'),
         # Microsoft Planetary Computer — cobertura global / global coverage
-        ('sentinel-2-l2a',      'Level-2A SR — COG  [Planetary Computer]'),
+        ('sentinel-2-l2a',     'Sentinel-2 — Imagens Globais  [Planetary Computer]'),
+        # AWS Element84 — cobertura global / global coverage
+        ('sentinel-2-l2a-aws', 'Sentinel-2 — Imagens Globais  [AWS Element84]'),
     ],
 
     'Landsat': [
         # Brazil Data Cube — INPE / Brazil Data Cube — INPE
-        ('LANDSAT-16D-1',      'Data Cube — Multisensor — 16 dias  [INPE/BDC] (Brazil only)'),
-        ('landsat-2',          'Cenas — Level-2 SR — L5/L7/L8/L9  [INPE/BDC] (Brazil only)'),
+        ('landsat-2',      'Landsat 5 · 7 · 8 · 9 — Imagens  [INPE/BDC] (Brazil only)'),
+        ('LANDSAT-16D-1',  'Landsat 5 · 7 · 8 · 9 — DataCube 16 dias  [INPE/BDC] (Brazil only)'),
         # Microsoft Planetary Computer — cobertura global L4-9 / global coverage L4-9
-        ('landsat-c2-l2',      'Collection 2 — Level-2 SR — L4-9  [Planetary Computer]'),
-    ],
-
-    'Amazonia-1': [
-        # Satélite brasileiro operado pelo INPE — cobertura restrita ao Brasil / Brazilian satellite operated by INPE — coverage restricted to Brazil
-        ('AMZ1-WFI-L4-SR-1',  'WFI — Level-4 SR — COG  [INPE/BDC] (Brazil only)'),
-        ('AMZ1-WFI-L4-DN-1',  'WFI — Level-4 DN  [INPE/BDC] (Brazil only)'),
-        ('AMZ1-WFI-L2-DN-1',  'WFI — Level-2 DN  [INPE/BDC] (Brazil only)'),
-        ('AMZ1-WFI-3M-1',     'WFI — Mosaico 3 Meses / 3-Month Mosaic  [INPE/BDC] (Brazil only)'),
+        ('landsat-c2-l2',  'Landsat 4 · 5 · 7 · 8 · 9 — Imagens Globais  [Planetary Computer]'),
     ],
 
     'CBERS-4': [
@@ -73,6 +67,14 @@ SATELLITE_COLLECTIONS = {
         ('CB4A-WPM-L4-SR-1',  'WPM — Level-4 SR — COG  [INPE/BDC] (Brazil only)'),
         ('CB4A-WPM-L4-DN-1',  'WPM — Level-4 DN  [INPE/BDC] (Brazil only)'),
         ('CB4A-WPM-L2-DN-1',  'WPM — Level-2 DN  [INPE/BDC] (Brazil only)'),
+    ],
+
+    'Amazonia-1': [
+        # Satélite brasileiro operado pelo INPE — cobertura restrita ao Brasil / Brazilian satellite operated by INPE — coverage restricted to Brazil
+        ('AMZ1-WFI-L4-SR-1',  'WFI — Level-4 SR — COG  [INPE/BDC] (Brazil only)'),
+        ('AMZ1-WFI-L4-DN-1',  'WFI — Level-4 DN  [INPE/BDC] (Brazil only)'),
+        ('AMZ1-WFI-L2-DN-1',  'WFI — Level-2 DN  [INPE/BDC] (Brazil only)'),
+        ('AMZ1-WFI-3M-1',     'WFI — Mosaico 3 Meses / 3-Month Mosaic  [INPE/BDC] (Brazil only)'),
     ],
 }
 

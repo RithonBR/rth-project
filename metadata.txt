@@ -7,7 +7,7 @@ name=RTH PROJECT
 qgisMinimumVersion=3.40.7
 qgisMaximumVersion = 4.99
 description=O plugin foi desenvolvido para auxiliar profissionais de sensoriamento remoto em suas atividades do dia a dia, reunindo 13 ferramentas práticas e integradas que otimizam fluxos de trabalho dentro do QGIS. Entre suas funcionalidades, destaca-se a ferramenta de visualização e download de imagens de diferentes satélites, como Sentinel-2, Landsat, Amazônia e CBERS, realizando automaticamente a identificação do sistema de referência espacial (EPSG) mais adequado para a região selecionada. O plugin também oferece recursos para obtenção rápida de coordenadas geográficas (latitude e longitude) diretamente no mapa, além da copia do GeoJSON a partir de polígonos desenhados. Conta ainda com a possibilidade de envio de pontos para o Google Earth Pro, facilitando a integração entre plataformas. Outra funcionalidade importante é a visualização e download de modelos digitais de elevação (DEM) para áreas de interesse. Para análises espaciais, disponibiliza uma ferramenta de cálculo de área em hectares utilizando a projeção mais adequada da região, garantindo maior precisão e agilidade. O plugin também permite importar pontos de GPS e convertê-los em polígonos, bem como gerar pontos georreferenciados espaçados automaticamente dentro de áreas delimitadas. Adicionalmente, inclui ferramentas para importação e exportação rápida de dados no formato CSV, além da criação de linhas de plantio ou colheita em polígonos, contribuindo diretamente para aplicações no contexto agrícola e de geotecnologias.
-version=1.1.4
+version=1.1.5
 author=Luciano "Rithon" Junior
 email=lucianoufscagve@gmail.com
 

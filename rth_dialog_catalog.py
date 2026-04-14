@@ -32,6 +32,27 @@ class CatalogMixin:
     # 'irs'        → sensor IRS monoespectral / IRS monospectral sensor
     _EXCLUDED_KEYWORDS = ('tsirf', 'bimonthly', 'yearly', 'irs', 'bundle', 's2_l1c')
 
+    # Sobrescreve títulos vagos que a API BDC retorna com nomes mais descritivos
+    # Override vague BDC API titles with more descriptive names
+    _COLLECTION_TITLE_OVERRIDES = {
+        # Landsat — INPE/BDC
+        'landsat-2':     'Landsat 5 · 7 · 8 · 9 — Imagens  [INPE/BDC] (Brazil only)',
+        'LANDSAT-16D-1': 'Landsat 5 · 7 · 8 · 9 — DataCube 16 dias  [INPE/BDC] (Brazil only)',
+        # Sentinel-2 — INPE/BDC
+        'S2_L2A-1':      'Sentinel-2 — Imagens  [INPE/BDC] (Brazil only)',
+        'S2-16D-2':      'Sentinel-2 — DataCube 16 dias  [INPE/BDC] (Brazil only)',
+    }
+
+    # Ordem de exibição por satélite: Cenas → DataCube 16 dias → Global
+    # Display order per satellite: Scenes → 16-day DataCube → Global
+    _COLLECTION_ORDER = {
+        'Sentinel-2': ['S2_L2A-1', 'S2-16D-2', 'sentinel-2-l2a', 'sentinel-2-l2a-aws'],
+        'Landsat':    ['landsat-2', 'LANDSAT-16D-1', 'landsat-c2-l2'],
+    }
+
+    # Ordem dos satélites no combo / Satellite display order in combo
+    _SATELLITE_ORDER = ['Sentinel-2', 'Landsat', 'CBERS-4', 'CBERS-4A', 'Amazonia-1']
+
     def _populate_satellites(self, catalog):
         """Preenche o combo de satélites com o catálogo fornecido / Fill satellite combo with given catalog.
 
@@ -72,23 +93,27 @@ class CatalogMixin:
             for sat, colls in raw.items():
                 if sat not in self._DESIRED_SATS:
                     continue
-                # Remove coleções com palavras-chave excluídas e adiciona marcador (Brazil only)
-                # Remove collections with excluded keywords and add (Brazil only) marker
-                clean = [
-                    (cid, title if '(Brazil only)' in title else title + '  [INPE/BDC] (Brazil only)')
-                    for cid, title in colls
-                    if not any(kw in cid.lower() for kw in self._EXCLUDED_KEYWORDS)
-                ]
+                # Remove coleções com palavras-chave excluídas, aplica overrides e adiciona marcador (Brazil only)
+                # Remove excluded collections, apply title overrides and add (Brazil only) marker
+                clean = []
+                for cid, title in colls:
+                    if any(kw in cid.lower() for kw in self._EXCLUDED_KEYWORDS):
+                        continue
+                    # Override tem prioridade sobre o título vago da API / Override takes priority over vague API title
+                    if cid in self._COLLECTION_TITLE_OVERRIDES:
+                        clean.append((cid, self._COLLECTION_TITLE_OVERRIDES[cid]))
+                    else:
+                        clean.append((cid, title if '(Brazil only)' in title else title + '  [INPE/BDC] (Brazil only)'))
                 if clean:
                     filtered[sat] = clean
 
             # Garante que coleções externas (PC e AWS) sejam sempre incluídas / Ensure external collections (PC and AWS) are always included
             _EXTRA_S2 = [
-                ('sentinel-2-l2a',      'Level-2A SR — COG  [Planetary Computer]'),
-                ('sentinel-2-l2a-aws',  'Level-2A SR — COG  [AWS Element84]'),
+                ('sentinel-2-l2a',      'Sentinel-2 — Imagens Globais  [Planetary Computer]'),
+                ('sentinel-2-l2a-aws',  'Sentinel-2 — Imagens Globais  [AWS Element84]'),
             ]
             _EXTRA_LS = [
-                ('landsat-c2-l2',  'Collection 2 — Level-2 SR — L4-9  [Planetary Computer]'),
+                ('landsat-c2-l2',  'Landsat 4 · 5 · 7 · 8 · 9 — Imagens Globais  [Planetary Computer]'),
             ]
 
             existing_s2 = {cid for cid, _ in filtered.get('Sentinel-2', [])}
@@ -101,7 +126,26 @@ class CatalogMixin:
                 if entry[0] not in existing_ls:
                     filtered.setdefault('Landsat', []).append(entry)
 
-            self._api_catalog = filtered
+            # Aplica ordem de coleções por satélite (Imagens → DataCube → Global) / Apply collection order per satellite
+            for sat, order in self._COLLECTION_ORDER.items():
+                if sat not in filtered:
+                    continue
+                by_id     = {e[0]: e for e in filtered[sat]}
+                ordered   = [by_id[cid] for cid in order if cid in by_id]
+                remaining = [e for e in filtered[sat] if e[0] not in set(order)]
+                filtered[sat] = ordered + remaining
+
+            # Aplica ordem dos satélites no combo / Apply satellite order in combo
+            ordered_catalog = {}
+            for sat in self._SATELLITE_ORDER:
+                if sat in filtered:
+                    ordered_catalog[sat] = filtered[sat]
+            # Satélites não listados em _SATELLITE_ORDER vão ao final / Unlisted satellites go at the end
+            for sat in filtered:
+                if sat not in ordered_catalog:
+                    ordered_catalog[sat] = filtered[sat]
+
+            self._api_catalog = ordered_catalog
             self._populate_satellites(self._api_catalog)
             self._set_status(
                 'Catálogo atualizado ({} satélites) / Catalog updated ({} satellites)'.format(
