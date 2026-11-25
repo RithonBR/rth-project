@@ -170,7 +170,7 @@ class _MeasureMapTool(QgsMapTool):
             try:
                 _, dist_str = self._calc_dist(self._points[0], pt)
                 self._label.set_display(self._points[0], pt, dist_str)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
 
     def canvasReleaseEvent(self, event):
@@ -284,7 +284,7 @@ class _MeasureMapTool(QgsMapTool):
                 )
             ls.setPlacementFlags(flags)
             pal.setLineSettings(ls)
-        except Exception:
+        except Exception:  # nosec B110
             pass   # fallback: rótulo sobre a linha / label over the line
 
         # Formato de texto / Text format

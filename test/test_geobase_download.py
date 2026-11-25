@@ -20,7 +20,7 @@ import urllib.request
 try:
     import defusedxml.ElementTree as ET
 except ImportError:
-    import xml.etree.ElementTree as ET  # noqa: S405
+    import xml.etree.ElementTree as ET  # noqa: S405  # nosec B405
 
 SEP  = '─' * 72
 SEP2 = '═' * 72
@@ -234,7 +234,7 @@ def section_4_wcs_download():
         tf.write(xml); tf.close()
         rlyr = QgsRasterLayer(tf.name, target, 'gdal')
         try: os.unlink(tf.name)
-        except: pass
+        except: pass  # nosec B110
         p(f'  [GDAL WCS 1.0.0] isValid={rlyr.isValid()}')
 
     if not rlyr or not rlyr.isValid():

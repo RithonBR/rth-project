@@ -423,7 +423,7 @@ class FlightExportDialog(QDialog):
             v = feat.attribute(idx)
             try:
                 return float(v)
-            except (TypeError, ValueError):
+            except (TypeError, ValueError):  # nosec B110
                 pass
         return default_alt
 

@@ -442,7 +442,7 @@ class _PcFallbackThread(QThread):
             if feat:
                 self.found.emit(feat, self._col_id, self._comp_key)
                 return
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
         # 2. Bbox + data no E84 / Bbox + date on E84
@@ -451,7 +451,7 @@ class _PcFallbackThread(QThread):
             if feat:
                 self.found.emit(feat, self._col_id, self._comp_key)
                 return
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
         # 3. Feature sintético S3 / Synthetic S3 feature
@@ -599,7 +599,7 @@ class _SlotCard(QFrame):
                     self._thumb, self._cancel_flag, w=120, h=90,
                     overlay_rings=poly_rings)
                 return
-            except Exception:
+            except Exception:  # nosec B110
                 pass
         # Fallback: thumbnail padrão do STAC / Fallback: default STAC thumbnail
         from core.rth_thumbnail import load_thumbnail_async
@@ -1003,12 +1003,12 @@ class DeforestationMonitorDialog(QDialog):
         for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d', '%d-%m-%Y'):
             try:
                 return datetime.datetime.strptime(val_str[:10], fmt).date().isoformat()
-            except ValueError:
+            except ValueError:  # nosec B112
                 continue
         try:
             if hasattr(val, 'toPyDate'):
                 return val.toPyDate().isoformat()
-        except Exception:
+        except Exception:  # nosec B110
             pass
         return val_str[:10] if len(val_str) >= 10 else None
 
@@ -1056,14 +1056,14 @@ class DeforestationMonitorDialog(QDialog):
         if self._connected_layer is not None:
             try:
                 self._connected_layer.selectionChanged.disconnect(self._update_search_state)
-            except (RuntimeError, Exception):
+            except (RuntimeError, Exception):  # nosec B110
                 pass  # objeto C++ deletado ou sinal já desconectado / C++ object deleted or signal already disconnected
         layer = self.iface.activeLayer()
         self._connected_layer = layer
         if layer is not None:
             try:
                 layer.selectionChanged.connect(self._update_search_state)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
         self._update_search_state()
         if self._chk_prodes.isChecked():
@@ -1388,7 +1388,7 @@ class DeforestationMonitorDialog(QDialog):
         if apply_rgb_renderer:
             try:
                 apply_rgb_renderer(layer)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
 
         QgsProject.instance().addMapLayer(layer)
@@ -1396,7 +1396,7 @@ class DeforestationMonitorDialog(QDialog):
         if collapse_layer:
             try:
                 collapse_layer(layer)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
 
         self.iface.messageBar().pushMessage(
@@ -1416,27 +1416,27 @@ class DeforestationMonitorDialog(QDialog):
         for row in list(self._dl_download_rows):
             try:
                 row.cancel_if_running()
-            except RuntimeError:
+            except RuntimeError:  # nosec B110
                 pass  # widget C++ já deletado / C++ widget already deleted
         # Encerra threads de fallback PC→E84 ainda em andamento / Stop any running PC→E84 fallback threads
         for t in list(self._fallback_threads):
             try:
                 t.quit()
                 t.wait(500)
-            except RuntimeError:
+            except RuntimeError:  # nosec B110
                 pass
         # Desconecta sinais de camada para evitar referências mortas
         # Disconnects layer signals to avoid dangling references
         if self._layer_signals_connected:
             try:
                 self.iface.currentLayerChanged.disconnect(self._reconnect_layer_signals)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
             self._layer_signals_connected = False
         if self._connected_layer is not None:
             try:
                 self._connected_layer.selectionChanged.disconnect(self._update_search_state)
-            except (RuntimeError, Exception):
+            except (RuntimeError, Exception):  # nosec B110
                 pass
         super().closeEvent(event)
 

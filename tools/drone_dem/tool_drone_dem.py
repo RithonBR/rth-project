@@ -519,7 +519,7 @@ class DroneDEMDialog(QDialog):
                         'OUTPUT':     filled_path,
                     })
                     dem_path = res.get('OUTPUT', filled_path)
-                except Exception:
+                except Exception:  # nosec B110
                     pass  # fillnodata is optional
 
             if self.chk_hillshade.isChecked():
@@ -666,7 +666,7 @@ class DroneDEMDialog(QDialog):
                     'OUTPUT':            resampled,
                 })
                 merged = r2.get('OUTPUT', resampled)
-            except Exception:
+            except Exception:  # nosec B110
                 pass  # keep merged without resampling if warp fails
 
         return merged
@@ -712,7 +712,7 @@ class DroneDEMDialog(QDialog):
                 try:
                     res = processing.run(alg_id, pdal_params)
                     return res.get('OUTPUT', output)
-                except Exception:
+                except Exception:  # nosec B112
                     continue
 
             # Fallback: try without filter_expression key (older PDAL builds)
@@ -722,7 +722,7 @@ class DroneDEMDialog(QDialog):
                 try:
                     res = processing.run(alg_id, basic_params)
                     return res.get('OUTPUT', output)
-                except Exception:
+                except Exception:  # nosec B112
                     continue
 
             raise RuntimeError(

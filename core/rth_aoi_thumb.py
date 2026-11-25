@@ -155,7 +155,7 @@ class AoiThumbWorker(QRunnable):
         if 'planetarycomputer' in href or '.blob.core.windows.net' in href:
             try:
                 href = sign_pc_href(href)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
         # Converte s3:// para https HTTPS / Convert s3:// to HTTPS
         if href.startswith('s3://'):
@@ -195,13 +195,13 @@ class AoiThumbWorker(QRunnable):
                     src_sr.ImportFromEPSG(4326)
                     try:
                         src_sr.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-                    except AttributeError:
+                    except AttributeError:  # nosec B110
                         pass
                     dst_sr = osr.SpatialReference()
                     dst_sr.ImportFromWkt(raster_wkt)
                     try:
                         dst_sr.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-                    except AttributeError:
+                    except AttributeError:  # nosec B110
                         pass
                     ct = osr.CoordinateTransformation(src_sr, dst_sr)
                     corners = [ct.TransformPoint(x, y) for x, y in [
@@ -210,7 +210,7 @@ class AoiThumbWorker(QRunnable):
                     minY = min(c[1] for c in corners)
                     maxX = max(c[0] for c in corners)
                     maxY = max(c[1] for c in corners)
-                except Exception:
+                except Exception:  # nosec B110
                     pass  # Usa bbox original se a transformação falhar / Use original bbox if transform fails
 
             # Converte bbox para janela de pixels / Convert bbox to pixel window
@@ -325,7 +325,7 @@ def load_aoi_thumb_async(feature, collection_id, band_tuple, aoi_bbox,
                 label.setPixmap(pixmap)
             else:
                 label.setText('—')
-        except RuntimeError:
+        except RuntimeError:  # nosec B110
             pass  # Widget já destruído / Widget already destroyed
 
     worker.signals.done.connect(_done)

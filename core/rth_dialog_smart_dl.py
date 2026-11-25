@@ -315,7 +315,7 @@ class _DerivedCompositeWorker(QRunnable):
                         self._label, source_idx, source_idx))
                     for p in vsimem:
                         try: _gdal.Unlink(p)
-                        except: pass
+                        except: pass  # nosec B110
                     return
                 sources.append(ep)
 
@@ -324,7 +324,7 @@ class _DerivedCompositeWorker(QRunnable):
         if vrt_ds is None:
             for p in vsimem + [vrt]:
                 try: _gdal.Unlink(p)
-                except: pass
+                except: pass  # nosec B110
             return
         del vrt_ds
 
@@ -345,7 +345,7 @@ class _DerivedCompositeWorker(QRunnable):
 
         for p in vsimem + [vrt]:
             try: _gdal.Unlink(p)
-            except: pass
+            except: pass  # nosec B110
 
         self.signals.progress.emit('{}: ✓ derivada criada — {} / derived created — {}'.format(
             self._label, os.path.basename(self._output_path),

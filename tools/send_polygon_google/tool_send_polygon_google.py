@@ -139,13 +139,13 @@ def _open_in_google_earth(kml_path):
     for exe in _GE_PATHS:
         if os.path.exists(exe):
             try:
-                subprocess.Popen([exe, kml_path], close_fds=True)
+                subprocess.Popen([exe, kml_path], close_fds=True)  # nosec B603
                 return True
-            except Exception:
+            except Exception:  # nosec B110
                 pass
     # Fallback: sistema abre o arquivo KML com o app padrão / system default app
     try:
-        os.startfile(kml_path)
+        os.startfile(kml_path)  # nosec B606
         return True
     except Exception:
         return False

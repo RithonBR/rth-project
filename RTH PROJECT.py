@@ -112,7 +112,7 @@ except Exception:
     # Fallback para importação direta / Fallback to direct import
     try:
         from resources import *  # type: ignore  # noqa: F401, F403
-    except Exception:
+    except Exception:  # nosec B110
         pass  # Ignora se resources não estiver disponível / Ignore if resources not available
 
 
@@ -256,8 +256,8 @@ class rthproject:
         btn = QToolButton(self.iface.mainWindow())
         btn.setIcon(QIcon(icon_path))
         btn.setToolTip(self.tr(label))
-        btn.setToolButtonStyle(Qt.ToolButtonIconOnly)
-        btn.setPopupMode(QToolButton.InstantPopup)
+        btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+        btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         return btn
 
     def initGui(self):
@@ -930,7 +930,7 @@ class rthproject:
         # ── 10. Informações / Info ───────────────────────────────────────────
         _info_icon = self._icon('info.png') if os.path.exists(self._icon('info.png')) else self._icon('icon-geral.png')
         self._info_btn = self._make_dropdown_btn(_info_icon, u'Informações / Info')
-        self._info_btn.setPopupMode(QToolButton.DelayedPopup)
+        self._info_btn.setPopupMode(QToolButton.ToolButtonPopupMode.DelayedPopup)
         self._info_btn.clicked.connect(self.tool_info.run)
         self._info_widget_action = self.iface.addToolBarWidget(self._info_btn)
 

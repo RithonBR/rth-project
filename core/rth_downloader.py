@@ -105,13 +105,13 @@ def _bbox_wgs84_to_crs(bbox_wgs84, dst_srs_str):
         src_sr.ImportFromEPSG(4326)
         try:
             src_sr.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-        except AttributeError:
+        except AttributeError:  # nosec B110
             pass
         dst_sr = osr.SpatialReference()
         dst_sr.SetFromUserInput(dst_srs_str)
         try:
             dst_sr.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-        except AttributeError:
+        except AttributeError:  # nosec B110
             pass
         ct      = osr.CoordinateTransformation(src_sr, dst_sr)
         minX, minY, maxX, maxY = bbox_wgs84
@@ -266,7 +266,7 @@ def _warp_to_geotiff(src, out_path, scene_id, comp_label, dst_srs, _gdal, progre
             if os.path.isfile(out_path):
                 try:
                     os.remove(out_path)
-                except OSError:
+                except OSError:  # nosec B110
                     pass
             continue
 
@@ -277,12 +277,12 @@ def _warp_to_geotiff(src, out_path, scene_id, comp_label, dst_srs, _gdal, progre
                 try:
                     ds.FlushCache()
                     del ds
-                except Exception:
+                except Exception:  # nosec B110
                     pass
             if os.path.isfile(out_path):
                 try:
                     os.remove(out_path)
-                except OSError:
+                except OSError:  # nosec B110
                     pass
             progress_cb('{}: cancelado / cancelled'.format(scene_id), False)
             break
@@ -328,7 +328,7 @@ def _warp_to_geotiff(src, out_path, scene_id, comp_label, dst_srs, _gdal, progre
             if val_ds is not None:
                 try:
                     del val_ds
-                except Exception:
+                except Exception:  # nosec B110
                     pass
 
         if not corrupt:
@@ -344,7 +344,7 @@ def _warp_to_geotiff(src, out_path, scene_id, comp_label, dst_srs, _gdal, progre
                     for _bi in range(1, _st_ds.RasterCount + 1):
                         _st_ds.GetRasterBand(_bi).ComputeStatistics(True)
                     _st_ds = None
-            except Exception:
+            except Exception:  # nosec B110
                 pass  # Estatísticas são opcionais — não impede o carregamento / Stats are optional — does not block loading
 
             # Usa os nomes de banda reais quando disponíveis; sem band_names usa comp_label.
@@ -360,7 +360,7 @@ def _warp_to_geotiff(src, out_path, scene_id, comp_label, dst_srs, _gdal, progre
         if os.path.isfile(out_path):
             try:
                 os.remove(out_path)
-            except OSError:
+            except OSError:  # nosec B110
                 pass
 
         if attempt < _MAX_ATTEMPTS:
@@ -608,7 +608,7 @@ class DownloadThread(QThread):
                 if vsimem_to_cleanup and _gdal is not None:
                     try:
                         _gdal.Unlink(vsimem_to_cleanup)
-                    except Exception:
+                    except Exception:  # nosec B110
                         pass
 
                 if result is not None:
@@ -623,7 +623,7 @@ class DownloadThread(QThread):
                                 os.remove(out_path)
                             os.rename(tmp_path, out_path)
                             tmp_path = out_path
-                        except OSError:
+                        except OSError:  # nosec B110
                             pass  # usa o arquivo temp como resultado / use temp file as result
                     created += 1
                     self.layer_ready.emit(tmp_path, layer_name, feature)

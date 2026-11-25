@@ -151,7 +151,7 @@ class _PointGenThread(QThread):
                 # garante que todos recebam pontos, não apenas o primeiro.
                 # (Limitação: polígonos de tamanhos muito diferentes terão
                 # densidades diferentes — mas é o comportamento esperado.)
-                poly_idx = random.randint(0, n_polys - 1)
+                poly_idx = random.randint(0, n_polys - 1)  # nosec B311
                 g        = geoms[poly_idx]
 
                 pt = self._random_point_in_geom(g)
@@ -218,8 +218,8 @@ class _PointGenThread(QThread):
             return None
 
         for _ in range(max_tries):
-            x = random.uniform(min_x, max_x)
-            y = random.uniform(min_y, max_y)
+            x = random.uniform(min_x, max_x)  # nosec B311
+            y = random.uniform(min_y, max_y)  # nosec B311
             # geom.contains() faz a verificação de contenção ponto-em-polígono
             # diretamente no CRS nativo da camada — sem reprojeção.
             # Precisamos criar um QgsGeometry de ponto para a comparação

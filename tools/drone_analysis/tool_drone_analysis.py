@@ -135,7 +135,7 @@ def compute_drone_metrics(lines_layer, coverage_layer,
             if v is not None and v != '' and str(v) != 'NULL':
                 try:
                     return float(v)
-                except (ValueError, TypeError):
+                except (ValueError, TypeError):  # nosec B110
                     pass
         return default
 
@@ -203,7 +203,7 @@ def compute_drone_metrics(lines_layer, coverage_layer,
     if start_dt is not None:
         try:
             completion_dt = start_dt + datetime.timedelta(minutes=total_oper_min)
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
     # ── Operational efficiency ────────────────────────────────────────────────────

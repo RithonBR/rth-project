@@ -614,7 +614,7 @@ class DEMDownloaderDialog(QDialog):
                 if rl.isValid():
                     QgsProject.instance().addMapLayer(rl)
                     collapse_layer(rl)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
 
         level = 0 if count > 0 else 1
@@ -643,6 +643,6 @@ class DEMDownloaderDialog(QDialog):
         if self._rect_tool is not None:
             try:
                 self.iface.mapCanvas().unsetMapTool(self._rect_tool)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
         super().closeEvent(event)

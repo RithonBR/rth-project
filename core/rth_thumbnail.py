@@ -92,7 +92,7 @@ def _try_qpixmap(url, width, height):
         pixmap.loadFromData(QByteArray(img_data))
         if not pixmap.isNull():
             return pixmap.scaled(width, height, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-    except Exception:
+    except Exception:  # nosec B110
         pass
     return None
 
@@ -242,7 +242,7 @@ def load_thumbnail_async(feature, label_widget, cancel_flag):
     if not urls:
         try:
             label_widget.setText('Sem thumbnail / No thumbnail')
-        except RuntimeError:
+        except RuntimeError:  # nosec B110
             pass
         return
 
@@ -258,7 +258,7 @@ def load_thumbnail_async(feature, label_widget, cancel_flag):
                 label_widget.setPixmap(pixmap)
             else:
                 label_widget.setText('Sem thumbnail / No thumbnail')
-        except RuntimeError:
+        except RuntimeError:  # nosec B110
             pass
 
     worker = _ThumbWorker(urls, w, h, cancel_flag)

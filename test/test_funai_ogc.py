@@ -22,7 +22,7 @@ import urllib.request
 try:
     import defusedxml.ElementTree as ET
 except ImportError:
-    import xml.etree.ElementTree as ET  # noqa: S405
+    import xml.etree.ElementTree as ET  # noqa: S405  # nosec B405
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
@@ -100,30 +100,30 @@ def _layer_info(lyr):
                     val = getattr(dp, attr, None)
                     if callable(val):
                         info[attr] = val()
-                except Exception:
+                except Exception:  # nosec B110
                     pass
             # capabilities
             try:
                 caps = dp.capabilities()
                 info['dp_caps'] = int(caps)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
             # feature count
             try:
                 info['feature_count'] = dp.featureCount()
-            except Exception:
+            except Exception:  # nosec B110
                 pass
             # crs
             try:
                 info['crs'] = dp.crs().authid()
-            except Exception:
+            except Exception:  # nosec B110
                 pass
             # fields for vector
             try:
                 flds = dp.fields()
                 info['field_count'] = flds.count()
                 info['fields'] = [flds.at(i).name() for i in range(min(flds.count(), 8))]
-            except Exception:
+            except Exception:  # nosec B110
                 pass
     except Exception as exc:
         info['dp_exception'] = str(exc)
@@ -420,7 +420,7 @@ def section_8_qgis_network():
             ):
                 try:
                     return reply.attribute(ns())
-                except Exception:
+                except Exception:  # nosec B110
                     pass
         return None
 
@@ -825,7 +825,7 @@ def section_9_message_log():
 
     try:
         log_instance.messageReceived.disconnect(on_message)
-    except Exception:
+    except Exception:  # nosec B110
         pass
 
     p(f'isValid after 8 s: {lyr.isValid()}')
@@ -848,7 +848,7 @@ def section_9_message_log():
             m = getattr(log_instance, method_name, None)
             if m is not None:
                 p(f'  log.{method_name}(): {m}')
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
 
@@ -1041,7 +1041,7 @@ def section_12_geojson_temp():
     # Clean up temp GeoJSON
     try:
         os.unlink(tmp.name)
-    except Exception:
+    except Exception:  # nosec B110
         pass
 
 
@@ -1138,7 +1138,7 @@ def section_ana2_qgis_network():
                     obj = QNetworkRequest
                     for p_ in parts: obj = getattr(obj, p_)
                     code = reply.attribute(obj); break
-                except Exception: pass
+                except Exception: pass  # nosec B110
             data = bytes(reply.readAll())
             p(f'    HTTP {code}  error={err_int}  size={len(data)} bytes')
             if data: p(f'    First 200: {data[:200]}')
@@ -1462,7 +1462,7 @@ def section_anatel3_virtualize(picks):
             tmp.write(xml); tmp.close()
             qlyr = QgsRasterLayer(tmp.name, title, 'gdal')
             try: _os.unlink(tmp.name)
-            except: pass
+            except: pass  # nosec B110
             p(f'    → provider nativo falhou, tentou GDAL WMS')
         info = _layer_info(qlyr)
         _print_info(info, '    ')

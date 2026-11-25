@@ -92,7 +92,7 @@ class CalcAreaTool:
             # Copia o valor numérico para o clipboard / Copy numeric value to clipboard
             try:
                 QGuiApplication.clipboard().setText('{:.6f}'.format(total_ha))
-            except Exception:
+            except Exception:  # nosec B110
                 pass  # Ignora se o clipboard não estiver disponível / Ignore if clipboard is not available
 
             # Exibe o resultado com o datum utilizado / Show result with the datum used

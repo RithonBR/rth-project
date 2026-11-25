@@ -66,11 +66,11 @@ class rthprojectDialog(CatalogMixin, ResultsMixin, AoiMixin, SmartDlMixin, Actio
         self.iface = iface
         self.setupUi(self)
         self.setWindowFlags(
-            Qt.Window
-            | Qt.WindowTitleHint
-            | Qt.WindowMinimizeButtonHint
-            | Qt.WindowMaximizeButtonHint
-            | Qt.WindowCloseButtonHint
+            Qt.WindowType.Window
+            | Qt.WindowType.WindowTitleHint
+            | Qt.WindowType.WindowMinimizeButtonHint
+            | Qt.WindowType.WindowMaximizeButtonHint
+            | Qt.WindowType.WindowCloseButtonHint
         )
         self._selected_item    = None
         self._results          = []
@@ -258,7 +258,7 @@ class rthprojectDialog(CatalogMixin, ResultsMixin, AoiMixin, SmartDlMixin, Actio
         self.btn_prev_page.clicked.connect(self._on_prev_page)
 
         self.lbl_page_info = QLabel('', self._scenes_panel)
-        self.lbl_page_info.setAlignment(Qt.AlignCenter)
+        self.lbl_page_info.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_page_info.setStyleSheet('color: #555; font-size: 11px;')
         self.lbl_page_info.setVisible(False)
 
@@ -330,8 +330,8 @@ class rthprojectDialog(CatalogMixin, ResultsMixin, AoiMixin, SmartDlMixin, Actio
         cfg_inner.addWidget(self._chk_parallel)
 
         _sep = QFrame()
-        _sep.setFrameShape(QFrame.Shape.VLine if hasattr(QFrame, 'Shape') else QFrame.VLine)
-        _sep.setFrameShadow(QFrame.Shadow.Sunken if hasattr(QFrame, 'Shadow') else QFrame.Sunken)
+        _sep.setFrameShape(QFrame.Shape.VLine)
+        _sep.setFrameShadow(QFrame.Shadow.Sunken)
         _sep.setStyleSheet('color:#b0d0f0;')
         cfg_inner.addWidget(_sep)
 
@@ -369,11 +369,11 @@ class rthprojectDialog(CatalogMixin, ResultsMixin, AoiMixin, SmartDlMixin, Actio
         # ── Scroll area com a fila de downloads / Scroll area with download queue ──
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
 
         self._dl_inner = QWidget()
         self._dl_layout = QVBoxLayout(self._dl_inner)
-        self._dl_layout.setAlignment(Qt.AlignTop)
+        self._dl_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self._dl_layout.setContentsMargins(0, 0, 0, 0)
         self._dl_layout.setSpacing(8)
 
@@ -382,7 +382,7 @@ class rthprojectDialog(CatalogMixin, ResultsMixin, AoiMixin, SmartDlMixin, Actio
             'Selecione cenas na aba "Cenas" e clique em Baixar.\n\n'
             'No downloads queued.\n'
             'Select scenes in the "Scenes" tab and click Download.')
-        self._dl_empty.setAlignment(Qt.AlignCenter)
+        self._dl_empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._dl_empty.setStyleSheet('color:#aaa;font-size:12px;padding:40px;')
         self._dl_layout.addWidget(self._dl_empty)
 

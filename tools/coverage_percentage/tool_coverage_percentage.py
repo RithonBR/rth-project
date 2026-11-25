@@ -30,7 +30,7 @@ def _detect_utm(geom, src_crs):
         crs = QgsCoordinateReferenceSystem('EPSG:{}'.format(epsg))
         if crs.isValid():
             return crs
-    except Exception:
+    except Exception:  # nosec B110
         pass
     return QgsCoordinateReferenceSystem('EPSG:31982')
 

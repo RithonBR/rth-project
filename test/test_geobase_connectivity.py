@@ -23,7 +23,7 @@ _SSL_NO_VERIFY = frozenset({'idem.dhn.mar.mil.br'})
 try:
     import defusedxml.ElementTree as ET
 except ImportError:
-    import xml.etree.ElementTree as ET  # noqa: S405
+    import xml.etree.ElementTree as ET  # noqa: S405  # nosec B405
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 _HERE    = os.path.dirname(os.path.abspath(__file__)) if '__file__' in dir() else r'C:\Users\nohti\Desktop\rth_project\test'

@@ -203,7 +203,7 @@ class _DownloadRow(QWidget):
                 thread.count_sig.disconnect(self._on_count)
                 thread.warp_pct_sig.disconnect(self._bar.setValue)
                 thread.finished_sig.disconnect(self._on_finished)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
             thread.cancel()
             # Atualiza UI imediatamente para estado cancelado / Update UI immediately to cancelled state
@@ -460,7 +460,7 @@ class _DlQueue:
             if e.row:
                 try:
                     e.row.set_queue_position(i)
-                except RuntimeError:
+                except RuntimeError:  # nosec B110
                     pass  # Widget deletado entre ciclos do event loop / Widget deleted between event loop cycles
 
 

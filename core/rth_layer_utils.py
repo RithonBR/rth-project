@@ -67,7 +67,7 @@ def assign_crs_from_bbox(layer, feature):
             if crs.isValid():
                 layer.setCrs(crs)
                 return
-        except (ValueError, TypeError):
+        except (ValueError, TypeError):  # nosec B110
             pass
 
     # 3. proj:wkt do item STAC — cobre projeções não-padrão como BDC Albers / proj:wkt from STAC item — covers non-standard projections like BDC Albers
@@ -173,7 +173,7 @@ def collapse_layer(layer):
             if n:
                 try:
                     n.expandedChanged.disconnect(_guard)
-                except Exception:
+                except Exception:  # nosec B110
                     pass
                 n.setExpanded(False)
 
@@ -185,7 +185,7 @@ def collapse_layer(layer):
             if n:
                 try:
                     n.expandedChanged.disconnect(_guard)
-                except Exception:
+                except Exception:  # nosec B110
                     pass
 
         QTimer.singleShot(2000, _cleanup)

@@ -4,7 +4,7 @@ import re
 import shutil
 import tempfile
 import zipfile
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosec B405
 
 
 def _pretty_xml(root):

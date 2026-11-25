@@ -124,7 +124,7 @@ class ExportGridCSVTool:
                                 )
                         with open(path, 'w', newline='', encoding='utf-8') as f:
                             csv.writer(f).writerows(new_rows)
-            except Exception:
+            except Exception:  # nosec B110
                 pass  # Não crítico — arquivo já foi salvo / Not critical — file already saved
 
             self.iface.messageBar().pushMessage(

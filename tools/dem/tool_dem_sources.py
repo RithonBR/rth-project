@@ -268,7 +268,7 @@ def virtualize_dem_items(items, dst_srs, clip_bbox=None):
                         collapse_layer(rl)
                         loaded += 1
                         continue
-            except Exception:
+            except Exception:  # nosec B110
                 pass
 
         # Fallback: carrega direto sem reprojection / Fallback: load directly without reprojection

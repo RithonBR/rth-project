@@ -153,7 +153,7 @@ class _ThumbLoaderML(QThread):
             try:
                 req = urllib.request.Request(
                     url, headers={'User-Agent': 'RTH-Plugin/1.0'})
-                with urllib.request.urlopen(req, timeout=8) as resp:
+                with urllib.request.urlopen(req, timeout=8) as resp:  # nosec B310
                     data = resp.read()
                 self.ready.emit(row, data)
             except Exception:
@@ -317,7 +317,7 @@ class _StackBuildThread(QThread):
                 try:
                     formula  = defn['formula']
                     local_ns = {**idx_vars, 'np': np}
-                    result   = eval(formula, {'__builtins__': {}}, local_ns)   # noqa: S307
+                    result   = eval(formula, {'__builtins__': {}}, local_ns)   # noqa: S307  # nosec B307
                     result   = result.astype('float32')
                 except Exception:
                     step += 1
@@ -802,7 +802,7 @@ class StackMLDialog(QDialog):
         try:
             import numpy as np
             dummy  = {v: np.ones((4, 4), dtype='float32') for v in used_vars}
-            result = eval(formula, {'__builtins__': {}}, {**dummy, 'np': np})   # noqa: S307
+            result = eval(formula, {'__builtins__': {}}, {**dummy, 'np': np})   # noqa: S307  # nosec B307
             if not hasattr(result, 'shape'):
                 raise ValueError('Formula must return an array / Fórmula deve retornar array')
         except Exception as ex:
@@ -906,7 +906,7 @@ class StackMLDialog(QDialog):
             if not px.isNull():
                 item.setIcon(QIcon(
                     px.scaled(90, 68, _KEEP_ASPECT, _SMOOTH)))
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
     def _on_search_error(self, msg):

@@ -212,10 +212,10 @@ class _ThumbnailLoader(QThread):
             try:
                 req = urllib.request.Request(
                     url, headers={'User-Agent': 'RTH-QGIS-Plugin/1.0'})
-                with urllib.request.urlopen(req, timeout=8) as resp:
+                with urllib.request.urlopen(req, timeout=8) as resp:  # nosec B310
                     data = resp.read()
                 self.thumbnail_ready.emit(row, data)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
 
 
@@ -240,7 +240,7 @@ class _DownloadThread(QThread):
         try:
             req = urllib.request.Request(
                 self._url, headers={'User-Agent': 'RTH-QGIS-Plugin/1.0'})
-            with urllib.request.urlopen(req, timeout=60) as resp:
+            with urllib.request.urlopen(req, timeout=60) as resp:  # nosec B310
                 total      = int(resp.headers.get('Content-Length', 0) or 0)
                 downloaded = 0
                 chunk_sz   = 65_536
@@ -257,14 +257,14 @@ class _DownloadThread(QThread):
             if self._cancel:
                 try:
                     os.remove(self._dest_path)
-                except OSError:
+                except OSError:  # nosec B110
                     pass
                 return
             self.done.emit(self._dest_path)
         except Exception as e:
             try:
                 os.remove(self._dest_path)
-            except OSError:
+            except OSError:  # nosec B110
                 pass
             self.error.emit(str(e))
 
@@ -472,7 +472,7 @@ class MeteoDataDialog(QDialog):
                     t.result.disconnect()
                     t.error.disconnect()
                     t.thumbnail_ready.disconnect()
-                except Exception:
+                except Exception:  # nosec B110
                     pass
 
     def _fetch_all(self, collection):

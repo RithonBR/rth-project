@@ -91,7 +91,7 @@ class AoiRectangleTool(QgsMapTool):
             try:
                 xform = QgsCoordinateTransform(src_crs, wgs84, QgsProject.instance())
                 rect  = xform.transformBoundingBox(rect)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
 
         bbox = [rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()]

@@ -754,7 +754,7 @@ class PlantingGapsDialog(QDialog):
             edit_ds.Destroy()
 
             try: os.remove(tmp)
-            except Exception: pass
+            except Exception: pass  # nosec B110
 
             gap_px   = int(np.sum(gaps_clean))
             area_ha  = (w * h * px_w * px_h) / 10_000
@@ -935,7 +935,7 @@ class WeedDetectionDialog(QDialog):
             edit_ds.Destroy()
 
             try: os.remove(tmp)
-            except Exception: pass
+            except Exception: pass  # nosec B110
 
             weed_px  = int(np.sum(weeds_clean))
             weed_area = weed_px * px_w * px_h

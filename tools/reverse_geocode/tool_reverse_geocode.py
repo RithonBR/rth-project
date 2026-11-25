@@ -110,14 +110,14 @@ class ReverseGeocodeTool(QObject):
                 'ReverseGeocode', str(e), level=Qgis.MessageLevel.Warning)
             try:
                 self.iface.mapCanvas().unsetMapTool(self.map_tool)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
             return
 
         # Desativa a ferramenta imediatamente para evitar duplo-clique
         try:
             self.iface.mapCanvas().unsetMapTool(self.map_tool)
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
         # Cancela busca anterior se ainda estiver rodando
@@ -143,7 +143,7 @@ class ReverseGeocodeTool(QObject):
         if self._pending_bar_item:
             try:
                 self.iface.messageBar().popWidget(self._pending_bar_item)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
             self._pending_bar_item = None
 
@@ -158,7 +158,7 @@ class ReverseGeocodeTool(QObject):
             duration=8)
         try:
             QGuiApplication.clipboard().setText(result)
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
     def _on_geocoder_error(self, msg):

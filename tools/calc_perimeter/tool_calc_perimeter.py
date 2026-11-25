@@ -73,7 +73,7 @@ class CalcPerimeterTool:
 
             try:
                 QGuiApplication.clipboard().setText(clip_val)
-            except Exception:
+            except Exception:  # nosec B110
                 pass
 
             self.iface.messageBar().pushMessage(

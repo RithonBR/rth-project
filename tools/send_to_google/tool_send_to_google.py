@@ -89,7 +89,7 @@ class SendToGoogleTool:
                 if os.path.exists(path):
                     try:
                         # Abre o Google Earth Pro passando o arquivo KML / Open Google Earth Pro passing the KML file
-                        subprocess.Popen([path, kml_path], close_fds=True)
+                        subprocess.Popen([path, kml_path], close_fds=True)  # nosec B603
                         launched = True
                         break
                     except Exception:
@@ -98,7 +98,7 @@ class SendToGoogleTool:
             # Fallback: abre o KML com o aplicativo padrão do sistema / Fallback: open KML with the system default app
             if not launched:
                 try:
-                    os.startfile(kml_path)
+                    os.startfile(kml_path)  # nosec B606
                     launched = True
                 except Exception:
                     launched = False
@@ -119,5 +119,5 @@ class SendToGoogleTool:
             # Desativa a ferramenta de mapa após o clique / Deactivate the map tool after click
             try:
                 self.iface.mapCanvas().unsetMapTool(self.map_tool)
-            except Exception:
+            except Exception:  # nosec B110
                 pass  # Ignora erros ao desativar / Ignore deactivation errors

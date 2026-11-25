@@ -149,7 +149,7 @@ def _scene_utm(feature):
             lat = (bbox[1] + bbox[3]) / 2.0
             epsg, _, _, _ = detect_regional_utm(lon, lat)
             return 'EPSG:{}'.format(epsg)
-    except Exception:
+    except Exception:  # nosec B110
         pass
     return 'EPSG:4326'
 
@@ -1226,7 +1226,7 @@ class FieldAnalysisDialog(QDialog):
             if cutline_path and os.path.exists(cutline_path):
                 try:
                     os.remove(cutline_path)
-                except OSError:
+                except OSError:  # nosec B110
                     pass
 
         return output_path

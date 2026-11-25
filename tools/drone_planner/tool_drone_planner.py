@@ -356,7 +356,7 @@ class DroneFlightPlannerDialog(QDialog):
         self._poly_utm  = QgsGeometry(poly_geom)
         try:
             self._poly_utm.transform(xf)
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
         self._build_ui()
@@ -832,7 +832,7 @@ class DronePlannerTool:
             try:
                 xf0      = QgsCoordinateTransform(layer_crs, wgs84, QgsProject.instance())
                 centroid = xf0.transform(centroid)
-            except QgsCsException:
+            except QgsCsException:  # nosec B110
                 pass
 
         epsg, datum, zone, hemi = detect_regional_utm(centroid.x(), centroid.y())

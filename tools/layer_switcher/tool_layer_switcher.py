@@ -304,7 +304,7 @@ class LayerSwitcherTool:
         try:
             QgsProject.instance().writeProject.disconnect(self._save_project_config)
             QgsProject.instance().readProject.disconnect(self._load_project_config)
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
     # ------------------------------------------------------------------
@@ -431,7 +431,7 @@ class LayerSwitcherTool:
             proj.writeEntry('rth_layer_switcher', 'mode', self._mode)
             proj.writeEntry('rth_layer_switcher', 'groups',
                             json.dumps([g.to_dict() for g in self._groups]))
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
     def _load_project_config(self, *_):
@@ -453,7 +453,7 @@ class LayerSwitcherTool:
                         0, min(self._active_group_idx, len(self._groups) - 1))
                     for g in self._groups:
                         g._index = None
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
     def _load_config(self):

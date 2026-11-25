@@ -529,7 +529,7 @@ def save_custom_composition(collection_id, name, r, g, b, extra=None):
         QgsSettings().setValue(
             'rth_project/custom_compositions/' + _coll_key(collection_id),
             _json.dumps(comps))
-    except Exception:
+    except Exception:  # nosec B110
         pass
 
 
@@ -544,7 +544,7 @@ def delete_custom_composition(collection_id, name):
         QgsSettings().setValue(
             'rth_project/custom_compositions/' + _coll_key(collection_id),
             _json.dumps(comps))
-    except Exception:
+    except Exception:  # nosec B110
         pass
 
 

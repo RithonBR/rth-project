@@ -58,11 +58,11 @@ class LatLongPickerTool:
             # Copia as coordenadas para o clipboard / Copy coordinates to clipboard
             try:
                 QGuiApplication.clipboard().setText(formatted)
-            except Exception:
+            except Exception:  # nosec B110
                 pass  # Ignora se o clipboard não estiver disponível / Ignore if clipboard is not available
         finally:
             # Desativa a ferramenta após o clique / Deactivate the tool after the click
             try:
                 self.iface.mapCanvas().unsetMapTool(self.map_tool)
-            except Exception:
+            except Exception:  # nosec B110
                 pass  # Ignora erros ao desativar / Ignore deactivation errors

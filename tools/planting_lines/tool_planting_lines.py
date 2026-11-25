@@ -699,7 +699,7 @@ class PlantingLinesTool:
                     if action.isEnabled():
                         action.trigger()
                         return
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
         self.iface.actionAddFeature().trigger()

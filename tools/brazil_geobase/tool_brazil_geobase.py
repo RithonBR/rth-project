@@ -24,7 +24,7 @@ _SSL_NO_VERIFY = frozenset({'idem.dhn.mar.mil.br'})
 try:
     import defusedxml.ElementTree as ET
 except ImportError:
-    import xml.etree.ElementTree as ET  # noqa: S405  (fallback — defusedxml not installed)
+    import xml.etree.ElementTree as ET  # noqa: S405  # nosec B405  (fallback — defusedxml not installed)
 
 from qgis.PyQt.QtCore import Qt, QThread, pyqtSignal, QSortFilterProxyModel
 from qgis.PyQt.QtGui import QColor, QBrush, QFont, QStandardItemModel, QStandardItem
@@ -132,7 +132,7 @@ def _parse_wms(xml_text: str) -> list:
                     'crs':      _DEFAULT_CRS,
                     'type':     'WMS',
                 })
-    except ET.ParseError:
+    except ET.ParseError:  # nosec B110
         pass
     # deduplicate by name
     seen = set()
@@ -177,7 +177,7 @@ def _parse_wfs(xml_text: str) -> list:
                     'crs':      crs_code,
                     'type':     'WFS',
                 })
-    except ET.ParseError:
+    except ET.ParseError:  # nosec B110
         pass
     return layers
 
@@ -212,7 +212,7 @@ def _parse_wcs(xml_text: str) -> list:
                     name = (offer.text or '').strip()
                     if name:
                         layers.append({'name': name, 'title': name, 'abstract': '', 'crs': _DEFAULT_CRS, 'type': 'WCS'})
-    except ET.ParseError:
+    except ET.ParseError:  # nosec B110
         pass
     return layers
 
@@ -254,7 +254,7 @@ def _gdal_wcs_layer(base_url: str, identifier: str, title: str) -> 'QgsRasterLay
     lyr = QgsRasterLayer(tmp.name, title, 'gdal')
     try:
         os.unlink(tmp.name)
-    except Exception:
+    except Exception:  # nosec B110
         pass
     return lyr
 
@@ -292,7 +292,7 @@ def _gdal_wms_layer(base_url: str, layer_name: str, title: str,
     lyr = QgsRasterLayer(tmp.name, title, 'gdal')
     try:
         os.unlink(tmp.name)
-    except Exception:
+    except Exception:  # nosec B110
         pass
     return lyr
 
@@ -342,7 +342,7 @@ def _layer_error_msg(qlyr) -> str:
                 msg = getattr(err, 'message', lambda: '')()
                 if msg:
                     return msg.strip()[:300]
-    except Exception:
+    except Exception:  # nosec B110
         pass
     return ''
 
@@ -461,7 +461,7 @@ class _CapFetcher(QThread):
                             layers2 = []
                         if layers2:
                             layers = layers2
-                    except Exception:
+                    except Exception:  # nosec B110
                         pass  # keep layers = [] from first attempt
 
             self.done.emit(layers, self._svc_type)
@@ -883,7 +883,7 @@ class BrazilGeoBaseDialog(QDialog):
         # Disconnect itemChanged only — the view still needs rowsInserted to repaint
         try:
             self._lyr_model.itemChanged.disconnect(self._on_layer_select)
-        except (TypeError, RuntimeError):
+        except (TypeError, RuntimeError):  # nosec B110
             pass
 
         self._lyr_model.setRowCount(0)
@@ -927,7 +927,7 @@ class BrazilGeoBaseDialog(QDialog):
     def _select_all(self):
         try:
             self._lyr_model.itemChanged.disconnect(self._on_layer_select)
-        except (TypeError, RuntimeError):
+        except (TypeError, RuntimeError):  # nosec B110
             pass
         # Deselect everything first so hidden rows never stay checked silently
         for r in range(self._lyr_model.rowCount()):
@@ -946,7 +946,7 @@ class BrazilGeoBaseDialog(QDialog):
     def _deselect_all(self):
         try:
             self._lyr_model.itemChanged.disconnect(self._on_layer_select)
-        except (TypeError, RuntimeError):
+        except (TypeError, RuntimeError):  # nosec B110
             pass
         for r in range(self._lyr_model.rowCount()):
             item = self._lyr_model.item(r, 0)

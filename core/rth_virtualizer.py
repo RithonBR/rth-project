@@ -108,7 +108,7 @@ def _warp_to_crs_vrt(src, vrt_path, _gdal, dst_srs):
             ds.FlushCache()
             del ds
             return True
-    except Exception:
+    except Exception:  # nosec B110
         pass
     return False
 

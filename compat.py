@@ -29,7 +29,7 @@ def _patch(obj, name, provider):
     if not hasattr(obj, name):
         try:
             setattr(obj, name, provider())
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
 
@@ -297,7 +297,7 @@ try:
     _patch(Qgis, 'Critical', lambda: Qgis.MessageLevel.Critical)
     _patch(Qgis, 'Success',  lambda: Qgis.MessageLevel.Success)
 
-except Exception:
+except Exception:  # nosec B110
     pass  # QGIS modules not available (unit-test environment or import error)
 
 

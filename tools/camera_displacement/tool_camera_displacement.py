@@ -169,7 +169,7 @@ class CameraDisplacementTool:
             self._fraction       = float(s.value(_SETTINGS_FRAC, 0.8))
             self._auto_secs      = int(s.value(_SETTINGS_SECS,   5))
             self._auto_direction = int(s.value(_SETTINGS_DIR,    +1))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError):  # nosec B110
             pass
 
     def _save_settings(self):

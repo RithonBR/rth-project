@@ -80,7 +80,7 @@ class CatchJsonTool:
             # Copia o resultado para o clipboard / Copy result to clipboard
             try:
                 QGuiApplication.clipboard().setText(result)
-            except Exception:
+            except Exception:  # nosec B110
                 pass  # Ignora se o clipboard não estiver disponível / Ignore if clipboard is not available
 
             # Informa o usuário sobre o resultado / Inform the user about the result

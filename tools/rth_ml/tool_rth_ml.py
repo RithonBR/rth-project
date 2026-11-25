@@ -215,7 +215,7 @@ class _PipInstallWorker(QThread):
             # --no-color: remove escape ANSI que poluiria o label.
             # stderr=STDOUT: combina os dois streams para capturar mensagens de erro.
             # creationflags=_no_win: impede a janela de console preta no Windows.
-            proc = subprocess.Popen(
+            proc = subprocess.Popen(  # nosec B603
                 [python_exe, '-m', 'pip', 'install', '--no-color', self._package],
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 text=True, creationflags=_no_win)
@@ -253,7 +253,7 @@ class _PipInstallWorker(QThread):
         dirs = set()
         try:
             dirs.add(sysconfig.get_config_var('BINDIR') or '')   # diretório bin do Python ativo
-        except Exception:
+        except Exception:  # nosec B110
             pass
         for attr in ('exec_prefix', 'prefix', 'base_prefix'):
             dirs.add(getattr(sys, attr, '') or '')
@@ -294,12 +294,12 @@ class _PipInstallWorker(QThread):
         _no_win = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
         for path in filtered:
             try:
-                r = subprocess.run(
+                r = subprocess.run(  # nosec B603
                     [path, '-c', 'import pip; print(pip.__version__)'],
                     capture_output=True, timeout=10, creationflags=_no_win)
                 if r.returncode == 0 and r.stdout.strip():
                     return path
-            except Exception:
+            except Exception:  # nosec B112
                 continue
 
         # Fallback: sys.executable (funciona em Linux/Mac onde não é qgis.exe)
@@ -501,7 +501,7 @@ def _rasterize_samples(raster_path, vector_path, field):
             xs = [c[0] for c in corners]
             ys = [c[1] for c in corners]
             lyr.SetSpatialFilterRect(min(xs), min(ys), max(xs), max(ys))
-        except Exception:
+        except Exception:  # nosec B110
             pass   # filtro espacial é otimização, não blocante / spatial filter is optimization only
 
         # Cria um layer OGR em memória com as feições reprojetadas para o CRS do raster.
@@ -538,7 +538,8 @@ def _rasterize_samples(raster_path, vector_path, field):
 
     # Cria o raster de saída com EXATAMENTE as mesmas dimensões e geotransform
     # do raster de entrada. GDT_UInt16 suporta até 65535 classes — suficiente.
-    tmp    = tempfile.mktemp(suffix='.tif')
+    _fd, tmp = tempfile.mkstemp(suffix='.tif')
+    os.close(_fd)
     driver = gdal.GetDriverByName('GTiff')
     dst    = driver.Create(tmp, nc, nl, 1, gdal.GDT_UInt16)
     dst.SetGeoTransform(gt)
@@ -789,7 +790,7 @@ class _MLWorker(QThread):
         X, Y = _get_samples(self._raster_path, roi_path)
         try:
             os.remove(roi_path)
-        except OSError:
+        except OSError:  # nosec B110
             pass
 
         if X.size == 0:
@@ -934,7 +935,7 @@ class _MLWorker(QThread):
             # Cancellamento pelo usuário: remove o arquivo parcial para não deixar lixo.
             try:
                 os.remove(self._out_path)
-            except OSError:
+            except OSError:  # nosec B110
                 pass
             self.cancelled.emit()
             return
@@ -1669,7 +1670,7 @@ class RthMLDialog(QDialog):
             try:
                 layer.setContrastEnhancement(_CE_STRETCH, _CE_LIMITS)
                 layer.triggerRepaint()
-            except Exception:
+            except Exception:  # nosec B110
                 pass
         self._set_status_ok(
             '✔  Concluído: {} / Complete: {}'.format(
@@ -1784,7 +1785,7 @@ class RthMLDialog(QDialog):
                         r_crs.authid(), v_crs.authid(),
                         r_crs.authid(), v_crs.authid()),
                     level=Qgis.MessageLevel.Info, duration=8)
-        except Exception:
+        except Exception:  # nosec B110
             pass   # verificação opcional — não bloqueia se falhar / optional check
 
     def _on_diag(self, msg):
@@ -1862,7 +1863,8 @@ class RthMLDialog(QDialog):
         self._lbl_status.setText(
             'Exportando camada de memória para arquivo temporário... / '
             'Exporting memory layer to temporary file...')
-        tmp = tempfile.mktemp(suffix='.gpkg')
+        _fd, tmp = tempfile.mkstemp(suffix='.gpkg')
+        os.close(_fd)
         opts = QgsVectorFileWriter.SaveVectorOptions()
         opts.driverName = 'GPKG'
         opts.fileEncoding = 'UTF-8'

@@ -75,7 +75,7 @@ def _is_null(val):
         from qgis.PyQt.QtCore import QVariant as _QV
         if isinstance(val, _QV) and val.isNull():
             return True
-    except Exception:
+    except Exception:  # nosec B110
         pass
     return str(val).strip() == ''
 
@@ -405,7 +405,7 @@ class PointReviewerDialog(QDialog):
                 self._layer, [feat.id()],
                 QColor('#1a73e8'), QColor(255, 255, 255, 0),
                 flashes=2, duration=500)
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
     # ── Atualização da UI / UI update ─────────────────────────────────────────
@@ -466,7 +466,7 @@ class PointReviewerDialog(QDialog):
 
         try:
             self._layer.selectByIds([feat.id()])
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
 

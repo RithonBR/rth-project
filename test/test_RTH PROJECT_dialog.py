@@ -31,7 +31,7 @@ try:
     rthprojectDialog = _mod.rthprojectDialog
     QGIS_APP = get_qgis_app()
     _QGIS_AVAILABLE = QGIS_APP is not None and QGIS_APP[0] is not None
-except Exception:
+except Exception:  # nosec B110
     pass
 
 

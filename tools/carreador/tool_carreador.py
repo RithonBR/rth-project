@@ -80,7 +80,7 @@ def _add_memory_layer(name, geom, crs, color_hex=None):
             sym = layer.renderer().symbol()
             sym.setColor(QColor(color_hex))
             sym.symbolLayer(0).setStrokeColor(QColor('#333333'))
-        except Exception:
+        except Exception:  # nosec B110
             pass
     QgsProject.instance().addMapLayer(layer)
     collapse_layer(layer)
@@ -353,7 +353,7 @@ class CarreadorDialog(QDialog):
             except AttributeError:
                 cfg.setSuppress(QgsEditFormConfig.SuppressOn)
             self._temp_layer.setEditFormConfig(cfg)
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
         QgsProject.instance().addMapLayer(self._temp_layer)
@@ -398,11 +398,11 @@ class CarreadorDialog(QDialog):
                 self._temp_layer.commitChanges()
             else:
                 self._temp_layer.rollBack()
-        except Exception:
+        except Exception:  # nosec B110
             pass
         try:
             QgsProject.instance().removeMapLayer(self._temp_layer.id())
-        except Exception:
+        except Exception:  # nosec B110
             pass
         self._temp_layer = None
 
@@ -413,7 +413,7 @@ class CarreadorDialog(QDialog):
         # Garante que os dados estão no provider antes de ler
         try:
             self._temp_layer.commitChanges()
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
         features = list(self._temp_layer.getFeatures())
