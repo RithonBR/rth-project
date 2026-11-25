@@ -445,7 +445,8 @@ class PlantingLinesTool:
             centroid_wgs.x(), centroid_wgs.y()
         )
 
-        self._dlg = PlantingLinesDialog(self._epsg, self._datum, self._zone, self._hemi)
+        self._dlg = PlantingLinesDialog(self._epsg, self._datum, self._zone, self._hemi,
+                                        parent=self.iface.mainWindow())
         self._dlg.btn_draw.clicked.connect(self._start_drawing)
         self._dlg.btn_generate.clicked.connect(self._do_generate)
         self._dlg.finished.connect(self._on_dialog_finished)

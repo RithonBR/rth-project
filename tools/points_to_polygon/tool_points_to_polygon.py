@@ -59,8 +59,9 @@ class PointsToPolygonDialog(QDialog):
     def __init__(self, iface, parent=None):
         super().__init__(parent)
         self.iface = iface
-        self._headers = []
-        self._csv_path = ''
+        self._headers   = []
+        self._csv_path  = ''
+        self._delimiter = ','
 
         self.setWindowTitle('RTH — Pontos de GPS para Polígono / GPS Points to Polygon')
         self.setMinimumWidth(420)
@@ -273,20 +274,27 @@ class PointsToPolygonDialog(QDialog):
             self._btn_ok.setEnabled(True)
 
     def _on_browse(self):
-        """Abre seletor de arquivo CSV / Open CSV file selector."""
+        """Abre seletor de arquivo CSV ou sem extensão / Open CSV or extensionless file selector."""
         path, _ = QFileDialog.getOpenFileName(
             self,
-            'Selecione o CSV / Select CSV',
+            'Selecione o arquivo / Select file',
             '',
-            'CSV (*.csv);;Todos os arquivos / All files (*)'
+            'Todos os arquivos / All files (*);;CSV (*.csv)'
         )
         if not path:
             return
 
-        # Lê o cabeçalho / Read header
+        # Lê o cabeçalho detectando o delimitador (vírgula ou ponto-e-vírgula)
+        # Reads header detecting delimiter (comma or semicolon)
         try:
             with open(path, newline='', encoding='utf-8-sig') as f:
-                reader = csv.reader(f)
+                sample = f.read(4096)
+                f.seek(0)
+                try:
+                    self._delimiter = csv.Sniffer().sniff(sample, delimiters=',;\t|').delimiter
+                except csv.Error:
+                    self._delimiter = ','
+                reader = csv.reader(f, delimiter=self._delimiter)
                 self._headers = next(reader)
         except Exception as e:
             QMessageBox.warning(self, 'RTH', f'Erro ao ler cabeçalho.\nError reading header.\n{e}')
@@ -329,6 +337,11 @@ class PointsToPolygonDialog(QDialog):
     def csv_path(self):
         """Caminho do CSV selecionado / Selected CSV path."""
         return self._csv_path
+
+    @property
+    def csv_delimiter(self):
+        """Delimitador detectado no CSV / Detected CSV delimiter."""
+        return self._delimiter
 
     @property
     def lat_field(self):
@@ -399,9 +412,10 @@ class PointsToPolygonTool:
             uri = QUrl.fromLocalFile(dlg.csv_path).toString()
             # Usa o CRS selecionado pelo usuário (padrão WGS84) / Use user-selected CRS (default WGS84)
             crs_authid = dlg.selected_crs.authid() or 'EPSG:4326'
-            uri += '?delimiter=,&xField={}&yField={}&crs={}'.format(
-                dlg.lon_field,   # xField = longitude / xField = longitude
-                dlg.lat_field,   # yField = latitude / yField = latitude
+            uri += '?delimiter={}&xField={}&yField={}&crs={}'.format(
+                dlg.csv_delimiter,
+                dlg.lon_field,
+                dlg.lat_field,
                 crs_authid,
             )
             layer_name = os.path.splitext(os.path.basename(dlg.csv_path))[0]
@@ -484,7 +498,7 @@ class PointsToPolygonTool:
         feat_count = poly_layer.featureCount()
         self.iface.messageBar().pushMessage(
             'RTH Pontos de GPS para Polígono / GPS Points to Polygon',
-            f'{feat_count} polígono(s) gerado(s) | limiar / threshold: {dlg.alpha:.2f}',
+            f'{feat_count} polígono(s) gerado(s) / generated | limiar / threshold: {dlg.alpha:.2f}',
             level=Qgis.MessageLevel.Info, duration=6,
         )
 

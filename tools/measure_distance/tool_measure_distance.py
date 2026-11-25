@@ -151,7 +151,7 @@ class _MeasureMapTool(QgsMapTool):
         self.canvas().setCursor(Qt.CrossCursor)
         self.iface.messageBar().pushMessage(
             'RTH',
-            self.tr(u'Clique no 1º ponto / Click the 1st point  |  Esc = cancelar'),
+            self.tr(u'Clique no 1º ponto / Click the 1st point  |  Esc = cancelar / cancel'),
             level=Qgis.MessageLevel.Info, duration=0
         )
 
@@ -187,7 +187,7 @@ class _MeasureMapTool(QgsMapTool):
             self._rubber.addPoint(pt, True)
             self.iface.messageBar().pushMessage(
                 'RTH',
-                self.tr(u'Clique no 2º ponto / Click the 2nd point  |  Esc = cancelar'),
+                self.tr(u'Clique no 2º ponto / Click the 2nd point  |  Esc = cancelar / cancel'),
                 level=Qgis.MessageLevel.Info, duration=0
             )
 
@@ -237,7 +237,7 @@ class _MeasureMapTool(QgsMapTool):
 
         lyr = QgsVectorLayer(
             'LineString?crs={0}&field=distancia_m:double&field=distancia:string(80)'.format(crs_id),
-            'RTH Medição — {0}'.format(dist_str),
+            'RTH Medição / Measurement — {0}'.format(dist_str),
             'memory'
         )
 
@@ -260,20 +260,32 @@ class _MeasureMapTool(QgsMapTool):
         # Rótulo centralizado abaixo da linha / Label centered below the line
         pal = QgsPalLayerSettings()
         pal.fieldName = 'distancia'
-        pal.placement = QgsPalLayerSettings.Line
+
+        # QGIS 3/4 compat: o enum Placement mudou de namespace no Qt6/QGIS4
+        try:
+            pal.placement = QgsPalLayerSettings.Placement.Line   # QGIS 4
+        except AttributeError:
+            pal.placement = QgsPalLayerSettings.Line              # QGIS 3
 
         # Abaixo da linha via QgsLabelLineSettings (QGIS 3.16+)
         try:
             from qgis.core import QgsLabelLineSettings, QgsLabeling
             ls = QgsLabelLineSettings()
-            ls.setPlacementFlags(
-                QgsLabeling.LinePlacementFlags(
+            try:
+                # QGIS 4: flags aninhadas em LinePlacementFlag
+                flags = QgsLabeling.LinePlacementFlags(
+                    QgsLabeling.LinePlacementFlag.BelowLine |
+                    QgsLabeling.LinePlacementFlag.MapOrientation
+                )
+            except AttributeError:
+                # QGIS 3: flags direto em QgsLabeling
+                flags = QgsLabeling.LinePlacementFlags(
                     QgsLabeling.BelowLine | QgsLabeling.MapOrientation
                 )
-            )
+            ls.setPlacementFlags(flags)
             pal.setLineSettings(ls)
         except Exception:
-            pass   # fallback: label over line (still centered)
+            pass   # fallback: rótulo sobre a linha / label over the line
 
         # Formato de texto / Text format
         tf = QgsTextFormat()

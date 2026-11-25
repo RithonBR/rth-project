@@ -14,11 +14,24 @@ import re
 # Módulos QGIS para renderização, contraste e CRS / QGIS modules for rendering, contrast and CRS
 from qgis.core import (
     QgsMultiBandColorRenderer,
+    QgsSingleBandGrayRenderer,
     QgsContrastEnhancement,
     QgsRasterMinMaxOrigin,
     QgsRectangle,
     QgsCoordinateReferenceSystem,
 )
+
+# Enums com try/except: QGIS 3 (Qt5) expõe direto na classe;
+# QGIS 4 (Qt6) pode exigir o sub-namespace Limits / ContrastEnhancementAlgorithm.
+try:
+    _CUMCUT = QgsRasterMinMaxOrigin.Limits.CumulativeCut
+except AttributeError:
+    _CUMCUT = QgsRasterMinMaxOrigin.CumulativeCut
+
+try:
+    _CE_STRETCH = QgsContrastEnhancement.ContrastEnhancementAlgorithm.StretchToMinimumMaximum
+except AttributeError:
+    _CE_STRETCH = QgsContrastEnhancement.StretchToMinimumMaximum
 
 
 def assign_crs_from_bbox(layer, feature):
@@ -76,33 +89,40 @@ def assign_crs_from_bbox(layer, feature):
         layer.setCrs(crs)
 
 
-def apply_stretch(layer):
-    """Aplica corte cumulativo 2-98% a qualquer camada (mono ou multibanda) / Apply 2-98% cumulative cut stretch to any layer (single or multiband).
+def _apply_cumcut(layer):
+    """Corte cumulativo 2-98% sobre a extensão completa da camada com valores estimados.
+    QgsRectangle() vazio = QGIS usa extensão total do dataset com sampling (~250k pixels).
+    Cumulative cut 2-98% over full layer extent with estimated values (sampling ~250k px)."""
+    layer.setContrastEnhancement(_CE_STRETCH, _CUMCUT, QgsRectangle())
 
-    :param layer: camada raster / raster layer
-    """
-    # QgsRectangle() vazio usa a extensão completa do dataset / Empty QgsRectangle() uses full dataset extent
-    layer.setContrastEnhancement(
-        QgsContrastEnhancement.StretchToMinimumMaximum,
-        QgsRasterMinMaxOrigin.CumulativeCut,
-        QgsRectangle(),
-    )
+
+def apply_stretch(layer):
+    """Aplica corte cumulativo 2-98% a qualquer camada (mono ou multibanda) /
+    Apply 2-98% cumulative cut stretch to any layer (single or multiband)."""
+    _apply_cumcut(layer)
 
 
 def apply_rgb_renderer(layer):
-    """Aplica renderizador RGB e corte cumulativo 2-98% / Apply RGB renderer and 2-98% cumulative cut stretch.
+    """Aplica renderizador adequado ao número de bandas e corte cumulativo 2-98%.
+    Apply renderer appropriate to band count and 2-98% cumulative cut stretch.
 
-    :param layer: camada raster de 3 bandas / 3-band raster layer
+    1 banda  → escala de cinza (QgsSingleBandGrayRenderer)
+    ≥3 bandas → RGB (QgsMultiBandColorRenderer, bandas 1→R, 2→G, 3→B)
+
+    Sem esta verificação, um GeoTIFF de 1 banda com renderer RGB gera
+    'Pointer hBand is NULL in GDALRasterIOEx' porque as bandas 2 e 3 não existem.
+    Without this check, a 1-band GeoTIFF with RGB renderer raises
+    'Pointer hBand is NULL in GDALRasterIOEx' because bands 2 and 3 do not exist.
     """
-    # Renderizador multiband: banda 1→R, 2→G, 3→B / Multiband renderer: band 1→R, 2→G, 3→B
-    renderer = QgsMultiBandColorRenderer(layer.dataProvider(), 1, 2, 3)
+    n_bands = layer.bandCount()
+    if n_bands >= 3:
+        # Renderizador multiband: banda 1→R, 2→G, 3→B / Multiband renderer: band 1→R, 2→G, 3→B
+        renderer = QgsMultiBandColorRenderer(layer.dataProvider(), 1, 2, 3)
+    else:
+        # Banda única (extras do Smart Download: B11, B8A…) / Single band (Smart Download extras: B11, B8A…)
+        renderer = QgsSingleBandGrayRenderer(layer.dataProvider(), 1)
     layer.setRenderer(renderer)
-    # QgsRectangle() vazio usa a extensão completa da camada / Empty QgsRectangle() uses full layer extent
-    layer.setContrastEnhancement(
-        QgsContrastEnhancement.StretchToMinimumMaximum,
-        QgsRasterMinMaxOrigin.CumulativeCut,
-        QgsRectangle(),
-    )
+    _apply_cumcut(layer)
 
 
 def safe_id(text):

@@ -519,7 +519,7 @@ class BrazilGeoBaseDialog(QDialog):
         left_lay.addWidget(QLabel('<b>Provedores / Providers</b>'))
 
         self._search_prov = QLineEdit()
-        self._search_prov.setPlaceholderText('Filtrar provedores…')
+        self._search_prov.setPlaceholderText('Filtrar provedores… / Filter providers…')
         self._search_prov.textChanged.connect(self._filter_providers)
         left_lay.addWidget(self._search_prov)
 
@@ -539,7 +539,7 @@ class BrazilGeoBaseDialog(QDialog):
         right_lay.setSpacing(4)
 
         # Provider name label
-        self._lbl_prov = QLabel('<i>Selecione um provedor à esquerda…</i>')
+        self._lbl_prov = QLabel('<i>Selecione um provedor à esquerda… / Select a provider on the left…</i>')
         self._lbl_prov.setWordWrap(True)
         right_lay.addWidget(self._lbl_prov)
 
@@ -573,7 +573,7 @@ class BrazilGeoBaseDialog(QDialog):
         filter_row = QHBoxLayout()
         filter_row.setSpacing(4)
         self._search_lyr = QLineEdit()
-        self._search_lyr.setPlaceholderText('Filtrar camadas…')
+        self._search_lyr.setPlaceholderText('Filtrar camadas… / Filter layers…')
         self._search_lyr.textChanged.connect(self._filter_layers)
         filter_row.addWidget(self._search_lyr, 1)
 
@@ -630,12 +630,12 @@ class BrazilGeoBaseDialog(QDialog):
 
         self._btn_virt = QPushButton('▶  Virtualizar Selecionadas / Virtualize Selected')
         self._btn_virt.setEnabled(False)
-        self._btn_virt.setToolTip('Adiciona as camadas selecionadas ao mapa (streaming, sem download)')
+        self._btn_virt.setToolTip('Adiciona as camadas selecionadas ao mapa (streaming, sem download) / Adds selected layers to the map (streaming, no download)')
         self._btn_virt.clicked.connect(self._virtualize_selected)
 
         self._btn_dl = QPushButton('💾  Baixar WFS como GeoPackage / Download WFS as GPKG')
         self._btn_dl.setEnabled(False)
-        self._btn_dl.setToolTip('Baixa as camadas WFS selecionadas como arquivo GeoPackage local')
+        self._btn_dl.setToolTip('Baixa as camadas WFS selecionadas como arquivo GeoPackage local / Downloads selected WFS layers as a local GeoPackage file')
         self._btn_dl.clicked.connect(self._download_selected)
 
         self._btn_close = QPushButton('Fechar / Close')
@@ -750,7 +750,7 @@ class BrazilGeoBaseDialog(QDialog):
         # update download button label
         if svc == 'WFS':
             self._btn_dl.setText('💾  Baixar WFS como GeoPackage / Download as GPKG')
-            self._btn_dl.setToolTip('Baixa as camadas WFS selecionadas como arquivo GeoPackage local')
+            self._btn_dl.setToolTip('Baixa as camadas WFS selecionadas como arquivo GeoPackage local / Downloads selected WFS layers as a local GeoPackage file')
         else:
             self._btn_dl.setText('💾  Baixar como GeoTIFF / Download as GeoTIFF')
             self._btn_dl.setToolTip(
@@ -783,7 +783,7 @@ class BrazilGeoBaseDialog(QDialog):
             self._fetcher.quit()
             self._fetcher.wait(2000)
 
-        self._lbl_cap_status.setText(f'Conectando ao provedor {svc}…')
+        self._lbl_cap_status.setText(f'Conectando ao provedor {svc}… / Connecting to {svc} provider…')
         self._lbl_cap_status.setStyleSheet('font-size:10px;color:#555;padding:2px;')
         self._lbl_cap_status.setVisible(True)
         self._progress.setVisible(True)
@@ -800,7 +800,7 @@ class BrazilGeoBaseDialog(QDialog):
         if svc == self._cur_svc:
             self._populate_layers(layers)
             if layers:
-                self._lbl_cap_status.setText(f'{len(layers)} camada(s) disponível(is) via {svc}.')
+                self._lbl_cap_status.setText(f'{len(layers)} camada(s) disponível(is) / layer(s) available via {svc}.')
                 self._lbl_cap_status.setStyleSheet('font-size:10px;color:#2e7d32;padding:2px;')
             else:
                 self._lbl_cap_status.setText(
@@ -1043,12 +1043,12 @@ class BrazilGeoBaseDialog(QDialog):
             )
             self._lbl_cap_status.setStyleSheet('font-size:10px;color:#2e7d32;padding:2px;')
             self._iface.messageBar().pushMessage(
-                'GeoBase', f'{added} camada(s) adicionada(s) ao mapa.',
+                'GeoBase', f'{added} camada(s) adicionada(s) ao mapa. / {added} layer(s) added to map.',
                 level=Qgis.Success, duration=5
             )
         if errors:
             err_text = '\n'.join(errors)
-            self._lbl_cap_status.setText(f'⚠ Falha ao carregar:\n{err_text}')
+            self._lbl_cap_status.setText(f'⚠ Falha ao carregar / Failed to load:\n{err_text}')
             self._lbl_cap_status.setStyleSheet(
                 'font-size:10px;color:#b71c1c;background:#ffebee;'
                 'border:1px solid #e57373;border-radius:3px;padding:4px;'
@@ -1056,19 +1056,18 @@ class BrazilGeoBaseDialog(QDialog):
             self._lbl_cap_status.setVisible(True)
             if is_raster_svc:
                 self._iface.messageBar().pushMessage(
-                    'GeoBase — Servidor indisponível',
+                    'GeoBase — Servidor indisponível / Server unavailable',
                     (
                         f'Não foi possível carregar: {", ".join(errors[:3])}{"…" if len(errors) > 3 else ""}. '
-                        f'O servidor WMS/WCS não respondeu a tempo — isso é instabilidade '
-                        f'do servidor público, não um erro do plugin. '
-                        f'Aguarde alguns instantes e tente novamente.'
+                        f'O servidor WMS/WCS não respondeu a tempo — instabilidade do servidor público, não um erro do plugin. '
+                        f'/ Could not load: server did not respond in time. Try again later.'
                     ),
                     level=Qgis.Warning,
                     duration=20,
                 )
             else:
                 self._iface.messageBar().pushMessage(
-                    'GeoBase', f'Falha ao carregar: {"; ".join(e.split(chr(10))[0] for e in errors)[:120]}',
+                    'GeoBase', f'Falha ao carregar / Failed to load: {"; ".join(e.split(chr(10))[0] for e in errors)[:120]}',
                     level=Qgis.Warning, duration=10
                 )
 
@@ -1111,13 +1110,13 @@ class BrazilGeoBaseDialog(QDialog):
 
         pipe = QgsRasterPipe()
         if not pipe.set(qlyr.dataProvider().clone()):
-            return False, 'Não foi possível criar o pipeline de exportação.'
+            return False, 'Não foi possível criar o pipeline de exportação. / Could not create export pipeline.'
 
         writer = QgsRasterFileWriter(out_path)
         writer.setOutputFormat('GTiff')
         error = writer.writeRaster(pipe, cols, rows, extent, qlyr.crs())
         if error != QgsRasterFileWriter.NoError:
-            return False, f'Erro ao salvar GeoTIFF (código {error})'
+            return False, f'Erro ao salvar GeoTIFF (código {error}) / Error saving GeoTIFF (code {error})'
         return True, ''
 
     # ── Download (WFS → GeoPackage | WMS/WCS → GeoTIFF) ─────────────────────
@@ -1255,17 +1254,18 @@ class BrazilGeoBaseDialog(QDialog):
 
         if errors:
             self._lbl_cap_status.setText(
-                f'⚠ Erros ao baixar: {"; ".join(errors)}'
+                f'⚠ Erros ao baixar / Download errors: {"; ".join(errors)}'
             )
             self._lbl_cap_status.setStyleSheet(
                 'font-size:10px;color:#b71c1c;background:#ffebee;'
                 'border:1px solid #e57373;border-radius:3px;padding:4px;'
             )
             self._iface.messageBar().pushMessage(
-                'GeoBase — Erro no download',
+                'GeoBase — Erro no download / Download error',
                 (
                     f'Não foi possível baixar: {", ".join(errors[:3])}{"…" if len(errors) > 3 else ""}. '
-                    f'Verifique se o servidor WMS/WCS está acessível e tente novamente.'
+                    f'Verifique se o servidor WMS/WCS está acessível e tente novamente. / '
+                    f'Could not download. Check if the WMS/WCS server is accessible and try again.'
                 ),
                 level=Qgis.Warning, duration=12,
             )
@@ -1277,7 +1277,7 @@ class BrazilGeoBaseDialog(QDialog):
             )
             self._lbl_cap_status.setStyleSheet('font-size:10px;color:#2e7d32;padding:2px;')
             self._iface.messageBar().pushMessage(
-                'GeoBase', f'Download concluído em {out_dir}',
+                'GeoBase', f'Download concluído em / completed in {out_dir}',
                 level=Qgis.Success, duration=6
             )
 

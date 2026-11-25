@@ -14,10 +14,14 @@ __copyright__ = 'Copyright 2026, Rithon'
 
 import unittest
 
-from qgis.PyQt.QtGui import QIcon
+try:
+    from qgis.PyQt.QtGui import QIcon
+    _QGIS_AVAILABLE = True
+except ImportError:
+    _QGIS_AVAILABLE = False
 
 
-
+@unittest.skipUnless(_QGIS_AVAILABLE, 'QGIS runtime not available')
 class rthprojectDialogTest(unittest.TestCase):
     """Test rerources work."""
 
@@ -36,7 +40,7 @@ class rthprojectDialogTest(unittest.TestCase):
         self.assertFalse(icon.isNull())
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(rthprojectResourcesTest)
+    suite = unittest.makeSuite(rthprojectDialogTest)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
 

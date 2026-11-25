@@ -65,10 +65,10 @@ class CalcPerimeterTool:
                 total_m += geom_utm.length()
 
             if total_m >= 1000.0:
-                formatted = '{:.4f} quilômetros'.format(total_m / 1000.0)
+                formatted = '{:.4f} quilômetros / kilometers'.format(total_m / 1000.0)
                 clip_val  = '{:.6f}'.format(total_m / 1000.0)
             else:
-                formatted = '{:.2f} metros'.format(total_m)
+                formatted = '{:.2f} metros / meters'.format(total_m)
                 clip_val  = '{:.4f}'.format(total_m)
 
             try:

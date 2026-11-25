@@ -76,7 +76,21 @@ SATELLITE_COLLECTIONS = {
         ('AMZ1-WFI-L2-DN-1',  'WFI — Level-2 DN  [INPE/BDC] (Brazil only)'),
         ('AMZ1-WFI-3M-1',     'WFI — Mosaico 3 Meses / 3-Month Mosaic  [INPE/BDC] (Brazil only)'),
     ],
+
+    # Sentinel-1 RTC: Planetary Computer (global, VV/VH, 10m COG) e INPE/BDC (leste do Brasil, Gamma0_VV/VH, COG direto).
+    # Sentinel-1 RTC: Planetary Computer (global, VV/VH, 10m COG) and INPE/BDC (eastern Brazil, Gamma0_VV/VH, direct COG).
+    # Nota: cobertura PC tem lacunas em 2022-2024 nos estados do sul (falha S1B); 2021 e 2025 têm cobertura completa.
+    # Note: PC coverage has gaps in 2022-2024 for southern states (S1B failure); 2021 and 2025 have full coverage.
+    'Sentinel-1': [
+        ('sentinel-1-rtc', 'RTC — Radiometricamente Corrigido / Radiometrically Terrain Corrected (VV·VH, 10m) — COG  [Planetary Computer]'),
+    ],
+
 }
+
+# ── Satélites sem cobertura de nuvens ────────────────────────────────────────
+# SAR (S1) não tem eo:cloud_cover — oculta o slider de nuvens para esses satélites
+# SAR (S1) has no eo:cloud_cover — hide cloud slider for these satellites
+NO_CLOUD_SATELLITES = frozenset({'Sentinel-1'})
 
 # ── Coleções com sensor de composição exclusiva ───────────────────────────────
 # Sensores PAN-only: exibem apenas a composição PAN no combo / PAN-only sensors: show only PAN in combo
@@ -90,6 +104,13 @@ _RED_NIR_GREEN_ONLY_COLLECTIONS = {
     'CB4-PAN10M-L4-DN-1',
     'CB4-PAN10M-L2-DN-1',
 }
+
+# SAR: composição VV-VH-VV em falsa cor / SAR: VV-VH-VV false color composition
+_SAR_ONLY_COLLECTIONS: set = {'sentinel-1-rtc'}
+
+# Coleções de banda única com label customizado: {collection_id: (label, composition_key)}
+# Single-band collections with custom label: {collection_id: (label, composition_key)}
+_SINGLE_BAND_LABELS: dict = {}
 
 # ── Bandas RGB por coleção (fallback): (vermelho, verde, azul) ───────────────
 COLLECTION_RGB = {
@@ -130,6 +151,8 @@ COLLECTION_RGB = {
     'CB4A-WPM-L4-DN-1':  ('BAND3', 'BAND2', 'BAND1'),
     'CB4A-WPM-L2-DN-1':  ('BAND3', 'BAND2', 'BAND1'),
     # PAN5M e PAN10M não têm RGB / PAN5M and PAN10M have no RGB
+    # Sentinel-1 SAR: falsa cor VV-VH-VV / SAR false color VV-VH-VV
+    'sentinel-1-rtc': ('vv', 'vh', 'vv'),
 }
 
 # ── Bandas RED-NIR-BLUE por coleção (fallback): (Red, NIR, Blue) ─────────────
@@ -232,6 +255,14 @@ def get_band_tuple(collection_id, composition_key):
     :returns: tupla (ch1, ch2, ch3), string do asset ou None
     :rtype: tuple | str | None
     """
+    # SAR: banda única VV ou VH — deriva do COLLECTION_RGB para reutilizar os nomes de asset
+    # SAR: single band VV or VH — derived from COLLECTION_RGB to reuse asset names
+    if composition_key in ('SAR_VV', 'SAR_VH'):
+        rgb = COLLECTION_RGB.get(collection_id)
+        if rgb:
+            band = rgb[0] if composition_key == 'SAR_VV' else rgb[1]
+            return (band, band, band)
+        return None
     if composition_key == 'NIR_SWIR_RED':
         return COLLECTION_NIR_SWIR_RED.get(collection_id)
     if composition_key == 'RED_NIR_BLUE':
@@ -311,6 +342,212 @@ def get_rgb_from_eo_bands(eo_bands, composition_key='RGB'):
     return None
 
 
+# ── Catálogo de bandas com nomes amigáveis por coleção ───────────────────────
+# Usado pelo dialog de composição personalizada / Used by custom composition dialog
+
+_S2_BANDS = [
+    ('B01', 'Aerossol Costeiro / Coastal Aerosol (B01 · 443nm)'),
+    ('B02', 'Azul / Blue (B02 · 490nm)'),
+    ('B03', 'Verde / Green (B03 · 560nm)'),
+    ('B04', 'Vermelho / Red (B04 · 665nm)'),
+    ('B05', 'Red Edge-1 (B05 · 705nm)'),
+    ('B06', 'Red Edge-2 (B06 · 740nm)'),
+    ('B07', 'Red Edge-3 (B07 · 783nm)'),
+    ('B08', 'NIR — Infravermelho Próximo / Near Infrared (B08 · 842nm)'),
+    ('B8A', 'NIR Estreito / Narrow NIR (B8A · 865nm)'),
+    ('B09', 'Vapor d\'Água / Water Vapour (B09 · 945nm)'),
+    ('B11', 'SWIR-1 — Infravermelho Médio / Mid Infrared (B11 · 1610nm)'),
+    ('B12', 'SWIR-2 — Infravermelho Médio / Mid Infrared (B12 · 2190nm)'),
+]
+
+_LANDSAT_BANDS = [
+    ('blue',   'Azul / Blue'),
+    ('green',  'Verde / Green'),
+    ('red',    'Vermelho / Red'),
+    ('nir08',  'NIR — Infravermelho Próximo / Near Infrared (NIR08)'),
+    ('swir16', 'SWIR-1 — Infravermelho Médio / Mid Infrared (SWIR16 · 1.6µm)'),
+    ('swir22', 'SWIR-2 — Infravermelho Médio / Mid Infrared (SWIR22 · 2.2µm)'),
+    ('lwir11', 'Termal / Thermal (LWIR11)'),
+]
+
+_CB4_WFI_BANDS = [
+    ('BAND13', 'Azul / Blue (BAND13 · 450nm)'),
+    ('BAND14', 'Verde / Green (BAND14 · 555nm)'),
+    ('BAND15', 'Vermelho / Red (BAND15 · 660nm)'),
+    ('BAND16', 'NIR — Infravermelho Próximo / Near Infrared (BAND16 · 830nm)'),
+]
+
+_CB4_MUX_BANDS = [
+    ('BAND5', 'Azul / Blue (BAND5 · 450nm)'),
+    ('BAND6', 'Verde / Green (BAND6 · 555nm)'),
+    ('BAND7', 'Vermelho / Red (BAND7 · 660nm)'),
+    ('BAND8', 'NIR — Infravermelho Próximo / Near Infrared (BAND8 · 830nm)'),
+]
+
+_CB4A_WPM_BANDS = [
+    ('BAND0', 'PAN — Pancromático / Panchromatic (BAND0 · ~580nm)'),
+    ('BAND1', 'Azul / Blue (BAND1 · 450nm)'),
+    ('BAND2', 'Verde / Green (BAND2 · 555nm)'),
+    ('BAND3', 'Vermelho / Red (BAND3 · 660nm)'),
+    ('BAND4', 'NIR — Infravermelho Próximo / Near Infrared (BAND4 · 830nm)'),
+]
+
+_AMZ1_WFI_BANDS = [
+    ('BAND1', 'Azul / Blue (BAND1 · 450nm)'),
+    ('BAND2', 'Verde / Green (BAND2 · 520nm)'),
+    ('BAND3', 'Vermelho / Red (BAND3 · 670nm)'),
+    ('BAND4', 'NIR — Infravermelho Próximo / Near Infrared (BAND4 · 790nm)'),
+]
+
+# Catálogo de bandas por coleção: {collection_id: [(band_key, label_PT/EN), ...]}
+# Band catalog per collection: {collection_id: [(band_key, label_PT/EN), ...]}
+BAND_CATALOG = {
+    # Sentinel-2
+    'S2_L2A-1':           _S2_BANDS,
+    'S2-16D-2':           _S2_BANDS,
+    'sentinel-2-l2a':     _S2_BANDS,
+    'sentinel-2-l2a-aws': _S2_BANDS,
+    # Landsat
+    'landsat-2':          _LANDSAT_BANDS,
+    'LANDSAT-16D-1':      _LANDSAT_BANDS,
+    'landsat-c2-l2':      _LANDSAT_BANDS,
+    # CBERS-4 WFI
+    'CB4-WFI-L4-SR-1':    _CB4_WFI_BANDS,
+    'CB4-WFI-L4-DN-1':    _CB4_WFI_BANDS,
+    'CB4-WFI-L2-DN-1':    _CB4_WFI_BANDS,
+    'CBERS4-WFI-16D-2':   _CB4_WFI_BANDS,
+    # CBERS-4 MUX
+    'CB4-MUX-L4-SR-1':    _CB4_MUX_BANDS,
+    'CB4-MUX-L4-DN-1':    _CB4_MUX_BANDS,
+    'CB4-MUX-L2-DN-1':    _CB4_MUX_BANDS,
+    'CBERS4-MUX-2M-1':    _CB4_MUX_BANDS,
+    # CBERS-4 PAN5M — banda única / single band
+    'CB4-PAN5M-L4-DN-1':  [('BAND1', 'PAN — Pancromático / Panchromatic (BAND1 · 450–750nm)')],
+    'CB4-PAN5M-L2-DN-1':  [('BAND1', 'PAN — Pancromático / Panchromatic (BAND1 · 450–750nm)')],
+    # CBERS-4 PAN10M
+    'CB4-PAN10M-L4-DN-1': [
+        ('BAND2', 'Verde / Green (BAND2 · 555nm)'),
+        ('BAND3', 'Vermelho / Red (BAND3 · 660nm)'),
+        ('BAND4', 'NIR — Infravermelho Próximo / Near Infrared (BAND4 · 830nm)'),
+    ],
+    'CB4-PAN10M-L2-DN-1': [
+        ('BAND2', 'Verde / Green (BAND2 · 555nm)'),
+        ('BAND3', 'Vermelho / Red (BAND3 · 660nm)'),
+        ('BAND4', 'NIR — Infravermelho Próximo / Near Infrared (BAND4 · 830nm)'),
+    ],
+    # CBERS-4A WFI
+    'CB4A-WFI-L4-SR-1':   _CB4_WFI_BANDS,
+    'CB4A-WFI-L4-DN-1':   _CB4_WFI_BANDS,
+    'CB4A-WFI-L2-DN-1':   _CB4_WFI_BANDS,
+    'CB4A-WFI-16D-2':     _CB4_WFI_BANDS,
+    # CBERS-4A MUX
+    'CB4A-MUX-L4-SR-1':   _CB4_MUX_BANDS,
+    'CB4A-MUX-L4-DN-1':   _CB4_MUX_BANDS,
+    'CB4A-MUX-L2-DN-1':   _CB4_MUX_BANDS,
+    # CBERS-4A WPM
+    'CB4A-WPM-L4-SR-1':   _CB4A_WPM_BANDS,
+    'CB4A-WPM-L4-DN-1':   _CB4A_WPM_BANDS,
+    'CB4A-WPM-L2-DN-1':   _CB4A_WPM_BANDS,
+    # Amazonia-1 WFI
+    'AMZ1-WFI-L4-SR-1':   _AMZ1_WFI_BANDS,
+    'AMZ1-WFI-L4-DN-1':   _AMZ1_WFI_BANDS,
+    'AMZ1-WFI-L2-DN-1':   _AMZ1_WFI_BANDS,
+    'AMZ1-WFI-3M-1':      _AMZ1_WFI_BANDS,
+    # Sentinel-1 SAR — bandas / bands
+    'sentinel-1-rtc': [
+        ('vv', 'VV — Vertical/Vertical (backscatter, dB)'),
+        ('vh', 'VH — Vertical/Horizontal (backscatter, dB)'),
+    ],
+}
+
+
+def needs_eo_bands(collection_id):
+    """Retorna True se a coleção pode usar eo:bands da API para resolver composições / Return True if collection may use API eo:bands for composition building.
+
+    SAR, PAN, e coleções de banda única têm composição fixa — não precisam de eo:bands.
+    Usado para evitar chamadas de rede desnecessárias na thread principal.
+    SAR, PAN, and single-band collections have fixed compositions — they don't need eo:bands.
+    Used to avoid unnecessary network calls on the main thread.
+    """
+    return collection_id not in (
+        _SAR_ONLY_COLLECTIONS
+        | _PAN_ONLY_COLLECTIONS
+        | _RED_NIR_GREEN_ONLY_COLLECTIONS
+        | set(_SINGLE_BAND_LABELS)
+    )
+
+
+def get_band_catalog(collection_id):
+    """Retorna lista de (band_key, label) para a coleção / Return list of (band_key, label) for collection.
+
+    :param collection_id: ID da coleção / Collection ID
+    :returns: lista de tuplas (chave, rótulo amigável) / list of (key, friendly_label) tuples
+    :rtype: list[tuple[str, str]]
+    """
+    return BAND_CATALOG.get(collection_id, [])
+
+
+# ── Persistência de composições personalizadas via QgsSettings ────────────────
+
+import re as _re
+import json as _json
+
+
+def _coll_key(collection_id):
+    """Sanitiza o ID da coleção para uso como chave QgsSettings / Sanitize collection ID for QgsSettings key."""
+    return _re.sub(r'[^a-zA-Z0-9]', '_', collection_id)
+
+
+def get_custom_compositions(collection_id):
+    """Carrega composições personalizadas salvas para a coleção / Load saved custom compositions for collection.
+
+    :returns: lista de dicts {name, r, g, b, extra} / list of dicts {name, r, g, b, extra}
+    :rtype: list[dict]
+    """
+    try:
+        from qgis.core import QgsSettings
+        raw = QgsSettings().value(
+            'rth_project/custom_compositions/' + _coll_key(collection_id), '[]')
+        return _json.loads(raw) if raw else []
+    except Exception:
+        return []
+
+
+def save_custom_composition(collection_id, name, r, g, b, extra=None):
+    """Salva ou atualiza uma composição personalizada em QgsSettings / Save or update a custom composition in QgsSettings.
+
+    :param name: nome da composição (chave única) / composition name (unique key)
+    :param r: chave da banda vermelha / red band key
+    :param g: chave da banda verde / green band key
+    :param b: chave da banda azul / blue band key
+    :param extra: lista de chaves de bandas extras / list of extra band keys
+    """
+    try:
+        from qgis.core import QgsSettings
+        comps = [c for c in get_custom_compositions(collection_id) if c.get('name') != name]
+        comps.append({'name': name, 'r': r, 'g': g, 'b': b, 'extra': extra or []})
+        QgsSettings().setValue(
+            'rth_project/custom_compositions/' + _coll_key(collection_id),
+            _json.dumps(comps))
+    except Exception:
+        pass
+
+
+def delete_custom_composition(collection_id, name):
+    """Remove uma composição personalizada do QgsSettings / Remove a custom composition from QgsSettings.
+
+    :param name: nome da composição a remover / composition name to remove
+    """
+    try:
+        from qgis.core import QgsSettings
+        comps = [c for c in get_custom_compositions(collection_id) if c.get('name') != name]
+        QgsSettings().setValue(
+            'rth_project/custom_compositions/' + _coll_key(collection_id),
+            _json.dumps(comps))
+    except Exception:
+        pass
+
+
 def get_compositions(collection_id, eo_bands=None):
     """Retorna as composições disponíveis para a coleção / Return available compositions for the collection.
 
@@ -324,6 +561,19 @@ def get_compositions(collection_id, eo_bands=None):
     """
     # ── Sensores com composição exclusiva ─────────────────────────────────────
     # Exclusive composition sensors
+
+    # SAR: Sentinel-1 RTC — VV e VH como banda única (cinza nativo) + composição dual-pol
+    # SAR: Sentinel-1 RTC — VV and VH as single band (native gray) + dual-pol composite
+    if collection_id in _SAR_ONLY_COLLECTIONS:
+        return [
+            ('VV  (Banda Única / Single Band)', 'SAR_VV'),
+            ('VH  (Banda Única / Single Band)', 'SAR_VH'),
+            ('VV – VH – VV  (Composição Dual-Pol / Dual-Pol Composite)', 'RGB'),
+        ]
+
+    # Banda única com label customizado (ex: Ficocianina) / Single band with custom label (e.g. Phycocyanin)
+    if collection_id in _SINGLE_BAND_LABELS:
+        return [_SINGLE_BAND_LABELS[collection_id]]
 
     # PAN5M: sensor pancromático puro — somente composição PAN / Pure panchromatic sensor — PAN only
     if collection_id in _PAN_ONLY_COLLECTIONS:

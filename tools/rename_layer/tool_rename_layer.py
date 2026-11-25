@@ -54,7 +54,7 @@ class RenameLayerTool:
         if renamed == 1:
             self.iface.messageBar().pushMessage(
                 'RTH',
-                self.tr(u'Camada renomeada: {0}').format(layers[0].name()),
+                self.tr(u'Camada renomeada / Layer renamed: {0}').format(layers[0].name()),
                 level=Qgis.MessageLevel.Info, duration=2)
         elif renamed > 1:
             self.iface.messageBar().pushMessage(

@@ -109,7 +109,7 @@ class PolygonReviewerDialog(QDialog):
     # ── UI ───────────────────────────────────────────────────────────────────
 
     def _build_ui(self):
-        self.setWindowTitle('RTH Revisor de Poligonos')
+        self.setWindowTitle('RTH Revisor de Polígonos / Polygon Reviewer')
         self.setWindowFlags(
             Qt.Window | Qt.WindowTitleHint | Qt.WindowCloseButtonHint |
             Qt.WindowStaysOnTopHint
@@ -170,7 +170,7 @@ class PolygonReviewerDialog(QDialog):
         nav_row = QHBoxLayout()
         nav_row.setSpacing(8)
 
-        self.btn_prev = QPushButton('◀  Anterior')
+        self.btn_prev = QPushButton('◀  Anterior / Previous')
         self.btn_prev.setMinimumHeight(48)
         self.btn_prev.setStyleSheet(
             'QPushButton{background:#fff;color:#1a73e8;font-weight:bold;'
@@ -181,7 +181,7 @@ class PolygonReviewerDialog(QDialog):
         self.btn_prev.clicked.connect(self._on_prev)
         nav_row.addWidget(self.btn_prev)
 
-        self.btn_next = QPushButton('Proxima  ▶')
+        self.btn_next = QPushButton('Próxima / Next  ▶')
         self.btn_next.setMinimumHeight(48)
         self.btn_next.setStyleSheet(
             'QPushButton{background:#1a73e8;color:white;font-weight:bold;'

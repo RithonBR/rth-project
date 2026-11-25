@@ -32,7 +32,7 @@ from qgis.core import (
 )
 
 # RTH core — available via sys.path set in RTH PROJECT.py
-from core.rth_stac_api import search_stac
+from core.rth_stac_api import search_stac, search_stac_pc, _route_for, STAC_PC
 from core.rth_band_resolver import find_asset_key
 from core.rth_layer_utils import collapse_layer
 
@@ -124,6 +124,11 @@ def _init_gdal():
     gdal.SetConfigOption('CPL_VSIL_CURL_USE_CACHE',      'YES')
     gdal.SetConfigOption('CPL_VSIL_CURL_CACHE_SIZE',     '128000000')
     gdal.SetConfigOption('GDAL_DISABLE_READDIR_ON_OPEN', 'EMPTY_DIR')
+    # Retry automático quando um tile COG falha no meio da leitura (TIFFReadEncodedTile error).
+    # GDAL_HTTP_MAX_RETRY: quantas vezes tentar novamente após falha de rede.
+    # GDAL_HTTP_RETRY_DELAY: segundos entre tentativas.
+    gdal.SetConfigOption('GDAL_HTTP_MAX_RETRY',          '3')
+    gdal.SetConfigOption('GDAL_HTTP_RETRY_DELAY',        '2')
     return gdal
 
 
@@ -180,11 +185,15 @@ def _bbox_from_layer(layer, selected_only=False):
         xf  = QgsCoordinateTransform(crs, wgs84, QgsProject.instance())
         ext = xf.transformBoundingBox(ext)
 
+    dx = ext.xMaximum() - ext.xMinimum()
+    dy = ext.yMaximum() - ext.yMinimum()
+    mx = max(dx * 0.05, 0.0001)
+    my = max(dy * 0.05, 0.0001)
     return [
-        round(ext.xMinimum(), 6),
-        round(ext.yMinimum(), 6),
-        round(ext.xMaximum(), 6),
-        round(ext.yMaximum(), 6),
+        round(ext.xMinimum() - mx, 6),
+        round(ext.yMinimum() - my, 6),
+        round(ext.xMaximum() + mx, 6),
+        round(ext.yMaximum() + my, 6),
     ]
 
 
@@ -195,11 +204,15 @@ def _bbox_from_geometry(geom, src_crs):
     if src_crs != wgs84:
         xf = QgsCoordinateTransform(src_crs, wgs84, QgsProject.instance())
         ext = xf.transformBoundingBox(ext)
+    dx = ext.xMaximum() - ext.xMinimum()
+    dy = ext.yMaximum() - ext.yMinimum()
+    mx = max(dx * 0.05, 0.0001)
+    my = max(dy * 0.05, 0.0001)
     return [
-        round(ext.xMinimum(), 6),
-        round(ext.yMinimum(), 6),
-        round(ext.xMaximum(), 6),
-        round(ext.yMaximum(), 6),
+        round(ext.xMinimum() - mx, 6),
+        round(ext.yMinimum() - my, 6),
+        round(ext.xMaximum() + mx, 6),
+        round(ext.yMaximum() + my, 6),
     ]
 
 
@@ -253,11 +266,16 @@ def _write_cutline(poly_wkt, target_crs_str):
     return tmp_path
 
 
-def _clip_band(feature, band_name, bbox_wgs84, gdal, target_crs, cutline_path=None):
+def _clip_band(feature, band_name, bbox_wgs84, gdal, target_crs, cutline_path=None,
+               xRes=None, yRes=None):
     """Download-free clip of one Sentinel-2 COG band to bbox. Returns MEM dataset.
 
     If cutline_path is given the output is also masked to the polygon shape
     (pixels outside the polygon are set to nodata).
+
+    xRes/yRes (metres): output pixel size in the dstSRS units. Required when
+    cutline_path is None — without them GDAL tries to allocate the full COG
+    extent at native resolution, causing multi-GB memory errors on large canvases.
     """
     assets = feature.get('assets', {})
     key    = find_asset_key(assets, band_name)
@@ -278,14 +296,34 @@ def _clip_band(feature, band_name, bbox_wgs84, gdal, target_crs, cutline_path=No
     if cutline_path:
         warp_kw['cutlineDSName'] = cutline_path
         warp_kw['dstNodata']     = _NODATA
+    else:
+        # Without a cutline GDAL has no polygon to constrain the output size —
+        # it would use the source COG's native pixel size over the full canvas
+        # extent, potentially allocating hundreds of GB for large views.
+        # xRes/yRes cap the output at a safe resolution (caller is responsible
+        # for computing a value appropriate for the canvas size).
+        if xRes is not None:
+            warp_kw['xRes'] = xRes
+        if yRes is not None:
+            warp_kw['yRes'] = yRes
+        warp_kw['dstNodata'] = _NODATA
 
     opts = gdal.WarpOptions(**warp_kw)
-    return gdal.Warp('', url, options=opts)
+    ds_out = gdal.Warp('', url, options=opts)
+    if ds_out is None or ds_out.RasterCount == 0:
+        return None
+    return ds_out
 
 
 def _ds_to_array(ds):
     """Read band 1 as float32, normalise S2 reflectance (DN 0-10000 → 0-1)."""
     band = ds.GetRasterBand(1)
+    if band is None:
+        raise ValueError(
+            'Não foi possível ler a banda do dataset GDAL — '
+            'a cena pode não cobrir a área ou o arquivo remoto está inacessível.\n'
+            'Could not read band from GDAL dataset — '
+            'the scene may not cover the area or the remote file is inaccessible.')
     nd   = band.GetNoDataValue()
     arr  = band.ReadAsArray().astype('float32')
     if nd is not None:
@@ -393,6 +431,34 @@ def _find_thumbnail_url(feature):
     return None
 
 
+class _StacSearchThread(QThread):
+    """Executa busca STAC em background / Runs STAC search in background."""
+    result = pyqtSignal(list, object, object)   # features, next_body, prev_body
+    error  = pyqtSignal(str)
+
+    def __init__(self, params, parent=None):
+        super().__init__(parent)
+        self._params = params
+
+    def run(self):
+        try:
+            p = self._params
+            endpoint, _ = _route_for(p['coll_id'])
+            if endpoint == STAC_PC:
+                features, _, next_body, prev_body = search_stac_pc(
+                    p['coll_id'], p['bbox'], p['date_ini'], p['date_fim'],
+                    p['cloud_max'])
+            else:
+                features, _ = search_stac(
+                    p['coll_id'], p['bbox'], p['date_ini'], p['date_fim'],
+                    p['cloud_max'])
+                next_body = None
+                prev_body = None
+            self.result.emit(features, next_body, prev_body)
+        except Exception as e:
+            self.error.emit(str(e))
+
+
 class _ThumbFetcher(QThread):
     """Downloads a thumbnail image in the background."""
 
@@ -446,6 +512,9 @@ class FieldAnalysisDialog(QDialog):
         super().__init__(parent)
         self.iface = iface
         self._thumb_fetcher: _ThumbFetcher | None = None
+        self._search_thread = None
+        self._features      = []
+        self._search_params = {}
 
         self.setWindowTitle('RTH — Índices de Vegetação em Talhão / Vegetation Indices in Field')
         self.setWindowFlags(Qt.Window | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
@@ -611,9 +680,9 @@ class FieldAnalysisDialog(QDialog):
         bands_grid = QGridLayout(self._wgt_bands)
         bands_grid.setContentsMargins(8, 4, 8, 4)
         bands_grid.setSpacing(3)
-        bands_grid.addWidget(QLabel('<b>Variável</b>'), 0, 0)
-        bands_grid.addWidget(QLabel('<b>Banda S-2</b>'), 0, 1)
-        bands_grid.addWidget(QLabel('<b>Resolução</b>'), 0, 2)
+        bands_grid.addWidget(QLabel('<b>Variável / Variable</b>'), 0, 0)
+        bands_grid.addWidget(QLabel('<b>Banda S-2 / S-2 Band</b>'), 0, 1)
+        bands_grid.addWidget(QLabel('<b>Resolução / Resolution</b>'), 0, 2)
         _band_rows = [
             ('nir',      'B08', '10 m'),
             ('red',      'B04', '10 m'),
@@ -845,24 +914,32 @@ class FieldAnalysisDialog(QDialog):
                           ' ({} selecionado(s) / selected)'.format(layer.selectedFeatureCount())
                           if selected_only else ''))
 
-        bbox      = _bbox_from_layer(layer, selected_only)
-        coll_id   = self.combo_coll.currentData()
-        date_ini  = self.date_from.date().toString('yyyy-MM-dd')
-        date_fim  = self.date_to.date().toString('yyyy-MM-dd')
-        cloud_max = self.spin_cloud.value()
+        self._search_params = {
+            'layer':        layer,
+            'selected_only': selected_only,
+            'bbox':         _bbox_from_layer(layer, selected_only),
+            'coll_id':      self.combo_coll.currentData(),
+            'date_ini':     self.date_from.date().toString('yyyy-MM-dd'),
+            'date_fim':     self.date_to.date().toString('yyyy-MM-dd'),
+            'cloud_max':    self.spin_cloud.value(),
+        }
+        self._do_search()
 
+    def _do_search(self):
         self.list_scenes.clear()
         self.lbl_status.setText('Buscando cenas... / Searching scenes...')
-        QApplication.processEvents()
 
-        try:
-            features, _ = search_stac(coll_id, bbox, date_ini, date_fim, cloud_max)
-        except Exception as e:
-            self.lbl_status.setText('Erro / Error: {}'.format(str(e)[:100]))
-            QMessageBox.critical(self, 'RTH',
-                'Erro ao buscar cenas / Error searching scenes:\n\n{}'.format(str(e)))
-            return
+        if self._search_thread and self._search_thread.isRunning():
+            self._search_thread.quit()
+            self._search_thread.wait(500)
 
+        self._search_thread = _StacSearchThread(
+            self._search_params, parent=self)
+        self._search_thread.result.connect(self._on_search_result)
+        self._search_thread.error.connect(self._on_search_error)
+        self._search_thread.start()
+
+    def _on_search_result(self, features, next_body, prev_body):
         self._features = features
 
         if not features:
@@ -877,7 +954,6 @@ class FieldAnalysisDialog(QDialog):
             cloud_str = '{:.1f}%'.format(cloud) if cloud is not None else '?%'
             scene_id  = feat.get('id', 'unknown')
             s_date, mgrs, _suffix = _parse_s2_id(scene_id)
-            # Fallback date from datetime property if parse failed
             if not s_date:
                 s_date = (props.get('datetime') or '')[:10]
             label = '{}   ☁ {}   {}'.format(s_date, cloud_str, mgrs or scene_id[:20])
@@ -889,9 +965,8 @@ class FieldAnalysisDialog(QDialog):
         self.lbl_status.setText('{} cena(s) encontrada(s) — selecione uma / scene(s) found — select one'.format(
             len(features)))
 
-        # Auto-fill layer name from first scene: INDEX_mgrs_suffix
         if not self.edit_name.text().strip():
-            idx_key = self.combo_index.currentData()
+            idx_key  = self.combo_index.currentData()
             first_id = features[0].get('id', '')
             _, mgrs0, suffix0 = _parse_s2_id(first_id)
             if suffix0:
@@ -899,6 +974,11 @@ class FieldAnalysisDialog(QDialog):
             else:
                 dt0 = (features[0].get('properties', {}).get('datetime') or '')[:10].replace('-', '')
                 self.edit_name.setText('{}_{}'.format(idx_key, dt0))
+
+    def _on_search_error(self, msg):
+        self.lbl_status.setText('Erro / Error: {}'.format(msg[:100]))
+        QMessageBox.critical(self, 'RTH',
+            'Erro ao buscar cenas / Error searching scenes:\n\n{}'.format(msg))
 
     # ── Run / compute ─────────────────────────────────────────────────────────
 
@@ -955,7 +1035,7 @@ class FieldAnalysisDialog(QDialog):
         progress = QProgressDialog(
             'Calculando {}... / Computing {}...'.format(index_key, index_key),
             None, 0, n_steps, self)
-        progress.setWindowTitle('RTH — Análise do Talhão')
+        progress.setWindowTitle('RTH — Análise do Talhão / Field Analysis')
         progress.setWindowModality(Qt.WindowModal)
         progress.setMinimumDuration(0)
         progress.setValue(0)
@@ -1007,7 +1087,7 @@ class FieldAnalysisDialog(QDialog):
                             single_geom=geom, single_geom_crs=layer_crs)
                         results.append((result_path, name))
                     except Exception as e:
-                        errors.append('Polígono {}: {}'.format(i + 1, str(e)))
+                        errors.append('Polígono / Polygon {}: {}'.format(i + 1, str(e)))
                     progress.setValue(i + 1)
                     QApplication.processEvents()
         finally:
@@ -1168,7 +1248,7 @@ class FieldAnalysisTool:
 
     def run(self):
         if self._dialog is None or not self._dialog.isVisible():
-            self._dialog = FieldAnalysisDialog(self.iface)
+            self._dialog = FieldAnalysisDialog(self.iface, parent=self.iface.mainWindow())
         self._dialog.show()
         self._dialog.raise_()
         self._dialog.activateWindow()

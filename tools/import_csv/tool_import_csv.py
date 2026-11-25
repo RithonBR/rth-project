@@ -37,7 +37,8 @@ class ImportCSVDialog(QDialog):
         # Interface QGIS / QGIS interface
         self.iface = iface
         # Cabeçalho do CSV lido / Read CSV header
-        self._headers = []
+        self._headers   = []
+        self._delimiter = ','
 
         self.setWindowTitle('Importar CSV / Import CSV')
         self.setModal(True)
@@ -113,20 +114,27 @@ class ImportCSVDialog(QDialog):
         self.setLayout(layout)
 
     def _on_browse(self):
-        """Abre o seletor de arquivo CSV / Open CSV file selector."""
+        """Abre o seletor de arquivo CSV ou sem extensão / Open CSV or extensionless file selector."""
         path, _ = QFileDialog.getOpenFileName(
             self,
-            'Selecione o CSV / Select CSV',
+            'Selecione o arquivo / Select file',
             '',
-            'CSV (*.csv);;Todos os arquivos / All files (*)'
+            'Todos os arquivos / All files (*);;CSV (*.csv)'
         )
         if not path:
             return
 
-        # Lê apenas o cabeçalho do arquivo / Read only the file header
+        # Lê apenas o cabeçalho detectando o delimitador (vírgula ou ponto-e-vírgula)
+        # Reads only the header, detecting delimiter (comma or semicolon)
         try:
             with open(path, newline='', encoding='utf-8-sig') as f:
-                reader = csv.reader(f)
+                sample = f.read(4096)
+                f.seek(0)
+                try:
+                    self._delimiter = csv.Sniffer().sniff(sample, delimiters=',;\t|').delimiter
+                except csv.Error:
+                    self._delimiter = ','
+                reader = csv.reader(f, delimiter=self._delimiter)
                 self._headers = next(reader)
         except Exception as e:
             self.iface.messageBar().pushMessage(
@@ -161,6 +169,10 @@ class ImportCSVDialog(QDialog):
     def file_path(self):
         """Retorna o caminho do arquivo selecionado / Returns selected file path."""
         return self.edit_file.text()
+
+    def delimiter(self):
+        """Retorna o delimitador detectado no CSV / Returns detected CSV delimiter."""
+        return self._delimiter
 
     def x_field(self):
         """Retorna o nome da coluna X selecionada / Returns selected X column name."""
@@ -208,7 +220,8 @@ class ImportCSVTool:
         # Usa o provider nativo do QGIS para ler CSV com coordenadas
         # Uses QGIS native provider to read CSV with coordinates
         uri = QUrl.fromLocalFile(path).toString()
-        uri += '?delimiter=,&xField={}&yField={}&crs={}'.format(
+        uri += '?delimiter={}&xField={}&yField={}&crs={}'.format(
+            dlg.delimiter(),
             x_field,
             y_field,
             crs.authid()

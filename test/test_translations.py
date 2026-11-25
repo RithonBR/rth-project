@@ -7,20 +7,28 @@
      (at your option) any later version.
 
 """
-from .utilities import get_qgis_app
 
 __author__ = 'ismailsunni@yahoo.co.id'
 __date__ = '12/10/2011'
 __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
                  'Disaster Reduction')
+
 import unittest
 import os
 
-from qgis.PyQt.QtCore import QCoreApplication, QTranslator
+try:
+    try:
+        from .utilities import get_qgis_app
+    except (ImportError, SystemError):
+        from utilities import get_qgis_app
+    from qgis.PyQt.QtCore import QCoreApplication, QTranslator
+    QGIS_APP = get_qgis_app()
+    _QGIS_AVAILABLE = QGIS_APP is not None and QGIS_APP[0] is not None
+except Exception:
+    _QGIS_AVAILABLE = False
 
-QGIS_APP = get_qgis_app()
 
-
+@unittest.skipUnless(_QGIS_AVAILABLE, 'QGIS runtime not available')
 class SafeTranslationsTest(unittest.TestCase):
     """Test translations work."""
 

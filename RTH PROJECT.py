@@ -57,6 +57,7 @@ from tools.info.tool_info import InfoTool                                      #
 from tools.measure_distance.tool_measure_distance import MeasureDistanceTool  # ferramenta Medir Distância / Measure Distance tool  # noqa: E402
 from tools.arcgis_export.tool_arcgis_export import ArcGISExportTool           # ferramenta Exportar para ArcGIS / Export to ArcGIS tool  # noqa: E402
 from tools.quick_style.tool_quick_style import QuickStyleTool                  # ferramenta Estilos/Layouts Rápidos / Quick Styles & Layouts tool  # noqa: E402
+from tools.rth_ml.tool_rth_ml import RthMLTool                                # ferramenta RTH Machine Learning  # noqa: E402
 from tools.monitor_export.tool_monitor_export import MonitorExportTool, MONITORS, make_brand_icon, make_tool_icon  # ferramenta Exportar Monitor Agrícola / Agricultural Monitor Export tool  # noqa: E402
 from tools.line_analysis.tool_line_analysis import LineAnalysisTool              # ferramenta Análise de Linhas / Line Analysis tool  # noqa: E402
 from tools.carreador.tool_carreador import CarreadorTool                         # ferramenta Criação de Carreadores / Headland Creation tool  # noqa: E402
@@ -70,7 +71,27 @@ from tools.drone_dem.tool_drone_dem import DroneDEMTool                         
 from tools.drone_analytics.tool_drone_analytics import (                                  # ferramentas Análises para Drone / Drone Analytics tools  # noqa: E402
     PlantCountTool, PlantingGapsTool, WeedDetectionTool, PlantHeightTool)                 # noqa: E402
 from tools.field_analysis.tool_field_analysis import FieldAnalysisTool                    # ferramenta Análise Rápida do Talhão / Quick Field Analysis tool  # noqa: E402
+from tools.vectorize_circle.tool_vectorize_circle import VectorizeCircleTool              # ferramenta Vetorizar Círculo / Vectorize Circle tool  # noqa: E402
+from tools.field_drawer.tool_field_drawer import FieldDrawerTool                          # ferramenta Desenhar Talhão automaticamente / Draw Field Automatically tool  # noqa: E402
+from tools.camera_displacement.tool_camera_displacement import CameraDisplacementTool     # ferramenta Deslocamento de Camera / Camera Displacement tool  # noqa: E402
+from tools.measure_canopy.tool_measure_canopy import MeasureCanopyTool                    # ferramenta Medir Copa das Árvores / Measure Tree Canopy tool  # noqa: E402
 from tools.brazil_geobase.tool_brazil_geobase import BrazilGeoBaseTool                    # ferramenta Brazil Public GeoBase / Base de Dados Pública do Brasil  # noqa: E402
+from tools.quick_indices.tool_quick_indices import QuickIndicesTool                         # ferramenta Índices de Vegetação em Imagem / Vegetation Indices in Image tool  # noqa: E402
+from tools.basemaps_mapeamento.tool_basemaps_mapeamento import BasemapsMapeamento           # ferramenta Basemaps de Satélite / Satellite Basemaps tool  # noqa: E402
+from tools.random_points.tool_random_points import RandomPointsTool                        # ferramenta Pontos Aleatórios em Camada / Random Points in Layer tool  # noqa: E402
+from tools.point_reviewer.tool_point_reviewer import PointReviewerTool                     # ferramenta Revisor de Pontos / Point Reviewer tool  # noqa: E402
+from tools.stack_ml.tool_stack_ml import StackMLTool                                       # ferramenta Stack de Imagem ML / Stack Image ML tool  # noqa: E402
+from tools.meteo_data.tool_meteo_data import MeteoDataTool                                 # ferramenta Base de Dados Meteorológicos / Meteorological Data Base  # noqa: E402
+from tools.coverage_percentage.tool_coverage_percentage import CoveragePercentageTool      # ferramenta Porcentagem de Cobertura / Coverage Percentage tool  # noqa: E402
+from tools.deforestation_monitor.tool_deforestation_monitor import DeforestationMonitorTool  # ferramenta Monitor de Desmatamento / Deforestation Monitor tool  # noqa: E402
+from tools.point_review_report.tool_point_review_report import PointReviewReportTool        # ferramenta Relatório de Revisão de Pontos / Point Review Report tool  # noqa: E402
+from tools.import_route_gpx.tool_import_route_gpx import ImportRouteGPXTool                # ferramenta Importar Rota GPX / Import GPX Route  # noqa: E402
+from tools.import_validation_points.tool_import_validation_points import ImportValidationPointsTool  # ferramenta Importar Pontos de Validação / Import Validation Points  # noqa: E402
+from tools.import_benfeitorias.tool_import_benfeitorias import ImportBenfeitoriasTool                # ferramenta Importar Pontos de Benfeitorias / Import Infrastructure Points  # noqa: E402
+from tools.import_productive_params.tool_import_productive_params import ImportProductiveParamsTool  # ferramenta Importar Parâmetros Produtivos / Import Productive Parameters  # noqa: E402
+from tools.respawn.tool_respawn import RespawnTool                                                   # ferramenta Setar/Teleportar Spawn / Set/Teleport Spawn tool  # noqa: E402
+from tools.street_view.tool_street_view import StreetViewTool                                        # ferramenta Buscar no Street View / Street View Navigation tool  # noqa: E402
+from tools.bordadura_lines.tool_bordadura_lines import BordaduraLinesTool                             # ferramenta Linhas de Bordadura / Headland Lines tool  # noqa: E402
 
 # Carrega dinamicamente o resources.py (nome de arquivo com espaço no diretório pai)
 # Dynamically load resources.py (filename with space in parent directory)
@@ -125,11 +146,19 @@ class rthproject:
         self.tool_measure = MeasureDistanceTool(iface)        # Medir Distância / Measure Distance
         self.tool_arcgis_export = ArcGISExportTool(iface)    # Exportar para ArcGIS / Export to ArcGIS
         self.tool_quick_style = QuickStyleTool(iface, _plugin_dir)  # Estilos/Layouts Rápidos / Quick Styles & Layouts
+        self.tool_rth_ml = RthMLTool(iface)                        # RTH Machine Learning
+        self.tool_stack_ml = StackMLTool(iface)                    # Stack de Imagem ML / Stack Image ML
+        self.tool_meteo_data = MeteoDataTool(iface)                 # Base de Dados Meteorológicos / Meteorological Data Base
         self.tool_monitor_export = MonitorExportTool(iface)          # Exportar Monitor Agrícola / Agricultural Monitor Export
         self.tool_line_analysis = LineAnalysisTool(iface)            # Análise de Linhas / Line Analysis
         self.tool_carreador = CarreadorTool(iface)                    # Criação de Carreadores / Headland Creation
         self.tool_send_polygon = SendPolygonToGoogleTool(iface)       # Enviar Polígono Google Earth Pro / Send Polygon to Google Earth Pro
         self.tool_polygon_reviewer = PolygonReviewerTool(iface)        # Revisor de Polígonos / Polygon Reviewer
+        self.tool_random_points      = RandomPointsTool(iface)            # Pontos Aleatórios em Camada / Random Points in Layer
+        self.tool_point_reviewer     = PointReviewerTool(iface)           # Revisor de Pontos / Point Reviewer
+        self.tool_coverage_pct         = CoveragePercentageTool(iface)      # Porcentagem de Cobertura / Coverage Percentage
+        self.tool_deforest_monitor     = DeforestationMonitorTool(iface)    # Monitor de Desmatamento / Deforestation Monitor
+        self.tool_pt_review_report     = PointReviewReportTool(iface)        # Relatório de Revisão de Pontos / Point Review Report
         self.tool_drone_planner = DronePlannerTool(iface)              # Planejador de Voo para Drones / Drone Flight Planner
         self.tool_flight_export = FlightExportTool(iface)              # Exportar Plano de Voo / Flight Plan Export
         self.tool_drone_analysis = DroneAnalysisTool(iface)            # Análise de Voo para Drones / Drone Flight Analysis
@@ -139,8 +168,21 @@ class rthproject:
         self.tool_planting_gaps  = PlantingGapsTool(iface)              # Detecção de Falhas de Plantio / Planting Gap Detection
         self.tool_weed_detection = WeedDetectionTool(iface)             # Detecção de Daninhas / Weed Detection
         self.tool_plant_height   = PlantHeightTool(iface)               # Altura de Planta / Plant Height CHM
-        self.tool_field_analysis = FieldAnalysisTool(iface)              # Análise Rápida do Talhão / Quick Field Analysis
-        self.tool_brazil_geobase = BrazilGeoBaseTool(iface)              # Brazil Public GeoBase / Base de Dados Pública do Brasil
+        self.tool_field_analysis    = FieldAnalysisTool(iface)              # Análise Rápida do Talhão / Quick Field Analysis
+        self.tool_field_drawer        = FieldDrawerTool(iface)             # Desenhar Talhão automaticamente / Draw Field Automatically
+        self.tool_camera_displacement = CameraDisplacementTool(iface)    # Deslocamento de Camera / Camera Displacement
+        self.tool_vectorize_circle  = VectorizeCircleTool(iface)         # Vetorizar Círculo / Vectorize Circle
+        self.tool_measure_canopy    = MeasureCanopyTool(iface)            # Medir Copa das Árvores / Measure Tree Canopy
+        self.tool_brazil_geobase    = BrazilGeoBaseTool(iface)            # Brazil Public GeoBase / Base de Dados Pública do Brasil
+        self.tool_quick_indices     = QuickIndicesTool(iface)              # Índices Rápidos por Imagem / Quick Image Indices
+        self.tool_basemaps               = BasemapsMapeamento(iface)                    # Basemaps de Satélite / Satellite Basemaps
+        self.tool_import_route_gpx       = ImportRouteGPXTool(iface)                   # Importar Rota GPX / Import GPX Route
+        self.tool_import_validation_pts  = ImportValidationPointsTool(iface)           # Importar Pontos de Validação / Import Validation Points
+        self.tool_import_benfeitorias    = ImportBenfeitoriasTool(iface)               # Importar Pontos de Benfeitorias / Import Infrastructure Points
+        self.tool_import_productive_params = ImportProductiveParamsTool(iface)         # Importar Parâmetros Produtivos / Import Productive Parameters
+        self.tool_respawn           = RespawnTool(iface)                              # Setar/Teleportar Spawn / Set/Teleport Spawn
+        self.tool_street_view       = StreetViewTool(iface)                           # Buscar no Street View / Street View Navigation
+        self.tool_bordadura_lines   = BordaduraLinesTool(iface)                        # Linhas de Bordadura / Headland Lines
 
         # Carrega dinamicamente o módulo de diálogo (nome com espaço) / Dynamically load dialog module (name with space)
         try:
@@ -267,15 +309,109 @@ class rthproject:
         self._gee_btn.setMenu(self._gee_menu)
         self._gee_widget_action = self.iface.addToolBarWidget(self._gee_btn)
 
-        # ── 3. Agricultura de Precisão (dropdown) ─────────────────────────────
+        # ── 3. Sensoriamento Remoto (dropdown) ───────────────────────────────
+        _sr_icon = self._icon('sensoriamento.png') if os.path.exists(self._icon('sensoriamento.png')) else self._icon('icon-geral.png')
+        self._sr_btn = self._make_dropdown_btn(_sr_icon, u'Sensoriamento Remoto / Remote Sensing')
+        self._sr_menu = QMenu(self._sr_btn)
+
+        _fd_icon = self._icon('talhaoAuto.png') if os.path.exists(self._icon('talhaoAuto.png')) else self._icon('icon-geral.png')
+        _fd_act = QAction(QIcon(_fd_icon), self.tr(u'Desenhar Talhão automaticamente / Draw Field Automatically'), self.iface.mainWindow())
+        _fd_act.setToolTip(self.tr(
+            u'Clique no mapa para delimitar automaticamente o talhão pela cor do canvas (CIELAB flood fill). '
+            u'Clique direito para ajustar a tolerância. / '
+            u'Click the map to automatically outline the field by canvas color (CIELAB flood fill). '
+            u'Right click to adjust tolerance.'))
+        _fd_act.triggered.connect(self.tool_field_drawer.run)
+        self._sr_menu.addAction(_fd_act)
+
+        _circ_icon = self._icon('VetCirculo.png') if os.path.exists(self._icon('VetCirculo.png')) else self._icon('icon.png')
+        _act = QAction(QIcon(_circ_icon), self.tr(u'Vetorizar Círculo / Vectorize Circle'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Clique no centro, mova para expandir, clique de novo para finalizar. '
+            u'Cria círculo suave com 144 vértices. / '
+            u'Click centre, move to expand, click again to finish. '
+            u'Creates smooth circle with 144 vertices.'))
+        _act.triggered.connect(self.tool_vectorize_circle.run)
+        self._sr_menu.addAction(_act)
+
+        _reviewer_icon = self._icon('revisorPoligono.png') if os.path.exists(self._icon('revisorPoligono.png')) else self._icon('icon-geral.png')
+        _act = QAction(QIcon(_reviewer_icon), self.tr(u'Revisor de Poligonos / Polygon Reviewer'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Navega pelos poligonos selecionados com zoom automatico e rastreamento de revisao / Navigate selected polygons with auto-zoom and revision tracking'))
+        _act.triggered.connect(self.tool_polygon_reviewer.run)
+        self._sr_menu.addAction(_act)
+
+        self._sr_menu.addSeparator()
+
+        _act = QAction(QIcon(self._icon('PontosAle.png')), self.tr(u'Pontos Aleatórios em Camada / Random Points in Layer'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Gera pontos aleatórios espacialmente espaçados dentro de uma camada polígono / Generates spatially spaced random points inside a polygon layer'))
+        _act.triggered.connect(self.tool_random_points.run)
+        self._sr_menu.addAction(_act)
+
+        _pt_rev_icon = self._icon('revisorPoligono.png') if os.path.exists(self._icon('revisorPoligono.png')) else self._icon('icon-geral.png')
+        _act = QAction(QIcon(_pt_rev_icon), self.tr(u'Revisor de Pontos / Point Reviewer'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Navega pelos pontos da camada ativa com zoom automático e marcação de acerto / Navigate points with auto-zoom and acerto marking'))
+        _act.triggered.connect(self.tool_point_reviewer.run)
+        self._sr_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('PorcenCob.png')), self.tr(u'Porcentagem de Cobertura / Coverage Percentage'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Calcula que % da área de referência é coberta pelo buffer dos pontos / Calculates what % of the reference area is covered by point buffers'))
+        _act.triggered.connect(self.tool_coverage_pct.run)
+        self._sr_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('RelatorioPontos.png')), self.tr(u'Relatório de Revisão de Pontos / Point Review Report'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Mostra contagem de Acertou/Errou/Indiferente e calcula o coeficiente Kappa / Shows Acertou/Errou/Indifferent counts and calculates Kappa coefficient'))
+        _act.triggered.connect(self.tool_pt_review_report.run)
+        self._sr_menu.addAction(_act)
+
+        self._sr_menu.addSeparator()
+
+        _deforest_mon_icon = self._icon('rthDesmatamento.png') if os.path.exists(self._icon('rthDesmatamento.png')) else self._icon('icon-geral.png')
+        _act = QAction(QIcon(_deforest_mon_icon), self.tr(u'Monitor de Desmatamento / Deforestation Monitor'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Busca automaticamente 5 imagens de satélite em momentos-chave em torno do desmatamento / Automatically searches 5 satellite images at key moments around deforestation'))
+        _act.triggered.connect(self.tool_deforest_monitor.run)
+        self._sr_menu.addAction(_act)
+
+        _qi_icon = self._icon('VegImage.png') if os.path.exists(self._icon('VegImage.png')) else self._icon('icon-geral.png')
+        _act = QAction(QIcon(_qi_icon), self.tr(u'Índices de Vegetação em Imagem / Vegetation Indices in Image'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Busca cenas Sentinel-2 pela área visível, selecione uma ou mais e calcule índices de vegetação. / '
+            u'Search Sentinel-2 scenes by the visible area, select one or more and compute vegetation indices.'))
+        _act.triggered.connect(self.tool_quick_indices.run)
+        self._sr_menu.addAction(_act)
+
+        self._sr_btn.setMenu(self._sr_menu)
+        self._sr_widget_action = self.iface.addToolBarWidget(self._sr_btn)
+
+        # ── 4. RTH Machine Learning (dropdown) ───────────────────────────────
+        _ml_icon = self._icon('rthmachine.png')
+        self._rth_ml_btn = self._make_dropdown_btn(_ml_icon, u'RTH Machine Learning')
+        self._rth_ml_menu = QMenu(self._rth_ml_btn)
+
+        _act = QAction(QIcon(self._icon('stackImage.png')), self.tr(u'Stack de Imagem ML / Stack Image ML'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Empilha bandas Sentinel-2 e índices de vegetação de uma cena STAC em um GeoTIFF multi-banda / '
+            u'Stacks Sentinel-2 bands and vegetation indices from a STAC scene into a multi-band GeoTIFF'))
+        _act.triggered.connect(self.tool_stack_ml.run)
+        self._rth_ml_menu.addAction(_act)
+
+        self._rth_ml_menu.addSeparator()
+
+        _act = QAction(QIcon(self._icon('classImage.png')), self.tr(u'Classificação de Uso do Solo / Land Use Classification'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_rth_ml.run)
+        self._rth_ml_menu.addAction(_act)
+
+        self._rth_ml_btn.setMenu(self._rth_ml_menu)
+        self._rth_ml_widget_action = self.iface.addToolBarWidget(self._rth_ml_btn)
+
+        # ── 4. Agricultura de Precisão (dropdown) ─────────────────────────────
         self._agro_btn = self._make_dropdown_btn(
             self._icon('agriculturaPresenciao.png') if os.path.exists(self._icon('agriculturaPresenciao.png')) else self._icon('icon.png'),
             u'Agricultura de Precisão / Precision Agriculture')
         self._agro_menu = QMenu(self._agro_btn)
 
-        # ── Ferramentas gerais / General tools ────────────────────────────────
-        _ptp_icon = self._icon('pts2poly.png') if os.path.exists(self._icon('pts2poly.png')) else self._icon('icon.png')
-        _act = QAction(QIcon(_ptp_icon), self.tr(u'Pontos de GPS para Polígono / GPS Points to Polygon'), self.iface.mainWindow())
+        # ── Ferramentas RTH World Explorer (duplicata) / World Explorer tools (duplicate) ──
+        _ptp_icon2 = self._icon('pts2poly.png') if os.path.exists(self._icon('pts2poly.png')) else self._icon('icon.png')
+        _act = QAction(QIcon(_ptp_icon2), self.tr(u'Pontos de GPS para Polígono / GPS Points to Polygon'), self.iface.mainWindow())
         _act.triggered.connect(self.tool_pts_to_poly.run)
         self._agro_menu.addAction(_act)
 
@@ -291,6 +427,8 @@ class rthproject:
         _act.triggered.connect(self.tool_import_csv.run)
         self._agro_menu.addAction(_act)
 
+        self._agro_menu.addSeparator()
+
         _act = QAction(QIcon(self._icon('vegtalhao.png')), self.tr(u'Indices de Vegetacao em Talhao / Vegetation Indices in Field'), self.iface.mainWindow())
         _act.setToolTip(self.tr(
             u'Selecione o talhao, busque cenas Sentinel-2 e compute NDVI/EVI/SAVI/MSAVI/NDWI diretamente do COG remoto / '
@@ -298,9 +436,20 @@ class rthproject:
         _act.triggered.connect(self.tool_field_analysis.run)
         self._agro_menu.addAction(_act)
 
+
         _pl_icon = self._icon('planting.png') if os.path.exists(self._icon('planting.png')) else self._icon('icon.png')
         _act = QAction(QIcon(_pl_icon), self.tr(u'Linhas de Plantio/Colheita / Planting/Harvest Lines'), self.iface.mainWindow())
         _act.triggered.connect(self.tool_planting_lines.run)
+        self._agro_menu.addAction(_act)
+
+        _bord_icon = self._icon('bordadura.png') if os.path.exists(self._icon('bordadura.png')) else self._icon('icon.png')
+        _act = QAction(QIcon(_bord_icon), self.tr(u'Linhas de Bordadura / Headland Lines'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Gera passadas perimetrais de bordadura dentro do polígono: '
+            u'offset = metade do implemento a partir da borda. / '
+            u'Generates headland perimeter passes inside the polygon: '
+            u'offset = half implement width from the boundary.'))
+        _act.triggered.connect(self.tool_bordadura_lines.run)
         self._agro_menu.addAction(_act)
 
         _act = QAction(QIcon(self._icon('planting analysis.png')), self.tr(u'Analise de Linhas / Line Analysis'), self.iface.mainWindow())
@@ -418,6 +567,33 @@ class rthproject:
         _act.triggered.connect(self.tool_brazil_geobase.run)
         self._geodata_menu.addAction(_act)
 
+        # ── Base de Dados Meteorológicos ──────────────────────────────────────
+        _meteo_icon = self._icon('BDMet.png')
+        _act = QAction(QIcon(_meteo_icon),
+                       self.tr(u'Base de Dados Meteorológicos / Meteorological Data Base'),
+                       self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Dados GOES, SAMET, MERGE, ETA e GL1.2 do INPE via STAC API / '
+            u'GOES, SAMET, MERGE, ETA and GL1.2 data from INPE via STAC API'))
+        _act.triggered.connect(self.tool_meteo_data.run)
+        self._geodata_menu.addAction(_act)
+
+        self._geodata_menu.addSeparator()
+
+        # ── Basemaps de Satélite / Satellite Basemaps ─────────────────────────
+        _basemaps_icon = self._icon('basesGeo.png') if os.path.exists(self._icon('basesGeo.png')) else self._icon('icon-geral.png')
+        _basemaps_submenu = QMenu(self._geodata_menu)
+        _basemaps_submenu.setTitle(self.tr(u'Basemaps'))
+        _basemaps_submenu.setIcon(QIcon(_basemaps_icon))
+
+        for _bm_name in ('ESRI Satellite', 'Google Satellite', 'Bing Satellite'):
+            _act = QAction(self.tr(_bm_name), self.iface.mainWindow())
+            _act.triggered.connect(
+                lambda _checked=False, _n=_bm_name: self.tool_basemaps.load(_n))
+            _basemaps_submenu.addAction(_act)
+
+        self._geodata_menu.addMenu(_basemaps_submenu)
+
         self._geodata_menu.addSeparator()
 
         # ── Bases Locais (dinâmico — varre a pasta Mock) ──────────────────────
@@ -453,13 +629,13 @@ class rthproject:
             u'Funcionalidades Adicionais / Additional Tools')
         self._additional_menu = QMenu(self._additional_btn)
 
-        _act = QAction(QIcon(self._icon('latlong.png')), self.tr(u'Capturar Lat/Long / Lat Long Picker'), self.iface.mainWindow())
-        _act.triggered.connect(self.tool_latlong.activate)
-        self._additional_menu.addAction(_act)
-
         _act = QAction(QIcon(self._icon('latlong.png')), self.tr(u'Identificar Localização / Identify Location'), self.iface.mainWindow())
         _act.setToolTip(self.tr(u'Clique no mapa para exibir e copiar cidade, município, estado e país via Nominatim/OpenStreetMap / Click on the map to display and copy city, municipality, state and country via Nominatim/OpenStreetMap'))
         _act.triggered.connect(self.tool_reverse_geocode.activate)
+        self._additional_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('latlong.png')), self.tr(u'Capturar Lat/Long / Lat Long Picker'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_latlong.activate)
         self._additional_menu.addAction(_act)
 
         _act = QAction(QIcon(self._icon('get.png')), self.tr(u'Capturar JSON / Catch JSON'), self.iface.mainWindow())
@@ -474,12 +650,6 @@ class rthproject:
         _act = QAction(QIcon(_earth_poly_icon), self.tr(u'Enviar Poligono Google Earth Pro / Send Polygon to Google Earth Pro'), self.iface.mainWindow())
         _act.setToolTip(self.tr(u'Envia o(s) poligono(s) selecionado(s) ao Google Earth Pro apenas com o tracado (sem preenchimento) / Sends selected polygon(s) to Google Earth Pro outline only (no fill)'))
         _act.triggered.connect(self.tool_send_polygon.run)
-        self._additional_menu.addAction(_act)
-
-        _reviewer_icon = self._icon('revisorPoligono.png') if os.path.exists(self._icon('revisorPoligono.png')) else self._icon('icon-geral.png')
-        _act = QAction(QIcon(_reviewer_icon), self.tr(u'Revisor de Poligonos / Polygon Reviewer'), self.iface.mainWindow())
-        _act.setToolTip(self.tr(u'Navega pelos poligonos selecionados com zoom automatico e rastreamento de revisao / Navigate selected polygons with auto-zoom and revision tracking'))
-        _act.triggered.connect(self.tool_polygon_reviewer.run)
         self._additional_menu.addAction(_act)
 
         _act = QAction(QIcon(self._icon('area.png')), self.tr(u'Calcular Área / Calc Area (ha)'), self.iface.mainWindow())
@@ -498,10 +668,14 @@ class rthproject:
         _act.triggered.connect(self.tool_measure.run)
         self._additional_menu.addAction(_act)
 
-        _arcgis_icon = self._icon('exportarArcgis.png') if os.path.exists(self._icon('exportarArcgis.png')) else self._icon('icon-geral.png')
-        _act = QAction(QIcon(_arcgis_icon), self.tr(u'Exportar para ArcGIS / Export to ArcGIS'), self.iface.mainWindow())
-        _act.setToolTip(self.tr(u'Exporta camadas do projeto para File Geodatabase (.gdb) compatível com ArcGIS / Export project layers to ArcGIS-compatible File Geodatabase (.gdb)'))
-        _act.triggered.connect(self.tool_arcgis_export.run)
+        _canopy_icon = self._icon('MedirCopa.png') if os.path.exists(self._icon('MedirCopa.png')) else self._icon('icon-geral.png')
+        _act = QAction(QIcon(_canopy_icon), self.tr(u'Medir Copa das Árvores / Measure Tree Canopy'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Clique no centro da árvore, mova até a borda da copa e clique de novo. '
+            u'Mostra diâmetro acima e raio abaixo em tempo real. / '
+            u'Click tree centre, move to canopy edge, click again. '
+            u'Shows diameter above and radius below in real-time.'))
+        _act.triggered.connect(self.tool_measure_canopy.run)
         self._additional_menu.addAction(_act)
 
         _rename_icon = self._icon('renomearRapido.png') if os.path.exists(self._icon('renomearRapido.png')) else self._icon('icon-geral.png')
@@ -511,7 +685,64 @@ class rthproject:
         self._additional_menu.addAction(self._action_rename)
         self.iface.registerMainWindowAction(self._action_rename, '')
 
+        _arcgis_icon = self._icon('exportarArcgis.png') if os.path.exists(self._icon('exportarArcgis.png')) else self._icon('icon-geral.png')
+        _act = QAction(QIcon(_arcgis_icon), self.tr(u'Exportar para ArcGIS / Export to ArcGIS'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Exporta camadas do projeto para File Geodatabase (.gdb) compatível com ArcGIS / Export project layers to ArcGIS-compatible File Geodatabase (.gdb)'))
+        _act.triggered.connect(self.tool_arcgis_export.run)
+        self._additional_menu.addAction(_act)
+
         self._additional_menu.addSeparator()
+
+        # ── Respawn ───────────────────────────────────────────────────────────
+        _spawn_set_icon      = self._icon('SetarSpawn.png') if os.path.exists(self._icon('SetarSpawn.png')) else self._icon('icon-geral.png')
+        _spawn_teleport_icon = self._icon('TeleportSpawn.png') if os.path.exists(self._icon('TeleportSpawn.png')) else self._icon('icon-geral.png')
+        _spawn_submenu = QMenu(self._additional_menu)
+        _spawn_submenu.setTitle(self.tr(u'Respawn'))
+        _spawn_submenu.setIcon(QIcon(_spawn_set_icon))
+
+        _act = QAction(QIcon(_spawn_set_icon), self.tr(u'Setar Spawn / Set Spawn'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Salva a posição e escala atuais do mapa como ponto de spawn. / '
+            u'Saves current map position and scale as spawn point.'))
+        _act.triggered.connect(self.tool_respawn.set_spawn)
+        _spawn_submenu.addAction(_act)
+
+        _act = QAction(QIcon(_spawn_teleport_icon), self.tr(u'Teleportar para Spawn / Teleport to Spawn'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Volta a câmera do mapa para o spawn salvo com a mesma posição e escala. / '
+            u'Returns map camera to saved spawn with the same position and scale.'))
+        _act.triggered.connect(self.tool_respawn.teleport)
+        _spawn_submenu.addAction(_act)
+
+        self._additional_menu.addMenu(_spawn_submenu)
+
+        # ── Buscar no Street View ─────────────────────────────────────────────
+        _sv_icon      = self._icon('streetview.png')      if os.path.exists(self._icon('streetview.png'))      else self._icon('earth.png')
+        _sv_add_icon  = self._icon('streetview_add.png')  if os.path.exists(self._icon('streetview_add.png'))  else _sv_icon
+        _sv_goto_icon = self._icon('streetview_goto.png') if os.path.exists(self._icon('streetview_goto.png')) else _sv_icon
+        _sv_submenu = QMenu(self._additional_menu)
+        _sv_submenu.setTitle(self.tr(u'Buscar no Street / Street View'))
+        _sv_submenu.setIcon(QIcon(_sv_icon))
+
+        _act = QAction(QIcon(_sv_add_icon), self.tr(u'Adicionar Camada Street View / Add Street View Layer'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Adiciona a camada de cobertura do Street View (linhas azuis) ao projeto. / '
+            u'Adds the Street View coverage layer (blue lines) to the project.'))
+        _act.triggered.connect(self.tool_street_view.add_coverage_layer)
+        _sv_submenu.addAction(_act)
+
+        _act_goto = QAction(QIcon(_sv_goto_icon), self.tr(u'Me Enviar para Local / Go to Location'), self.iface.mainWindow())
+        _act_goto.setCheckable(True)
+        _act_goto.setToolTip(self.tr(
+            u'Clique no mapa para abrir o Street View naquele ponto. '
+            u'Clique e arraste para definir a direção da câmera. / '
+            u'Click the map to open Street View at that point. '
+            u'Click and drag to set the camera direction.'))
+        _act_goto.triggered.connect(self.tool_street_view.goto)
+        self.tool_street_view.set_goto_action(_act_goto)
+        _sv_submenu.addAction(_act_goto)
+
+        self._additional_menu.addMenu(_sv_submenu)
 
         _cycle_icon = self._icon('layercycler.png') if os.path.exists(self._icon('layercycler.png')) else self._icon('icon-geral.png')
         _cycle_submenu = QMenu(self._additional_menu)
@@ -561,7 +792,56 @@ class rthproject:
         self._action_cycle_config.triggered.connect(self.tool_layer_switcher.configure)
         _cycle_submenu.addAction(self._action_cycle_config)
 
+        self._action_cycle_auto = QAction(QIcon(self._icon('icon-geral.png')), self.tr(u'Habilitar Alternância / Enable Auto-Switch'), self.iface.mainWindow())
+        self._action_cycle_auto.setToolTip(self.tr(u'Ativa/desativa a alternância automática de camadas por intervalo / Enable/disable automatic layer switching by interval'))
+        self._action_cycle_auto.setCheckable(True)
+        self._action_cycle_auto.triggered.connect(
+            lambda: self.tool_layer_switcher.set_auto(self._action_cycle_auto.isChecked()))
+        _cycle_submenu.addAction(self._action_cycle_auto)
+        self.tool_layer_switcher.set_auto_action(self._action_cycle_auto)
+
+        self._action_cycle_auto_config = QAction(QIcon(_config_icon), self.tr(u'Configurar Intervalo / Configure Interval'), self.iface.mainWindow())
+        self._action_cycle_auto_config.setToolTip(self.tr(u'Define o intervalo em segundos para a alternância automática / Set the interval in seconds for automatic layer switching'))
+        self._action_cycle_auto_config.triggered.connect(self.tool_layer_switcher.configure_auto)
+        _cycle_submenu.addAction(self._action_cycle_auto_config)
+
         self._additional_menu.addMenu(_cycle_submenu)
+
+        _cam_icon      = self._icon('camera.png')      if os.path.exists(self._icon('camera.png'))      else self._icon('icon-geral.png')
+        _cam_up_icon   = self._icon('cameracima.png')  if os.path.exists(self._icon('cameracima.png'))  else _cam_icon
+        _cam_down_icon = self._icon('camerabaixo.png') if os.path.exists(self._icon('camerabaixo.png')) else _cam_icon
+        _cam_submenu = QMenu(self._additional_menu)
+        _cam_submenu.setTitle(self.tr(u'Deslocamento de Camera / Camera Displacement'))
+        _cam_submenu.setIcon(QIcon(_cam_icon))
+
+        self._action_cam_up = QAction(QIcon(_cam_up_icon), self.tr(u'↑  Deslocar para Cima / Shift Up'), self.iface.mainWindow())
+        self._action_cam_up.setToolTip(self.tr(u'Desloca o canvas para cima (norte) pelo passo configurado / Shift canvas up (north) by configured step'))
+        self._action_cam_up.triggered.connect(self.tool_camera_displacement.pan_up)
+        _cam_submenu.addAction(self._action_cam_up)
+        self.iface.registerMainWindowAction(self._action_cam_up, '')
+
+        self._action_cam_down = QAction(QIcon(_cam_down_icon), self.tr(u'↓  Deslocar para Baixo / Shift Down'), self.iface.mainWindow())
+        self._action_cam_down.setToolTip(self.tr(u'Desloca o canvas para baixo (sul) pelo passo configurado / Shift canvas down (south) by configured step'))
+        self._action_cam_down.triggered.connect(self.tool_camera_displacement.pan_down)
+        _cam_submenu.addAction(self._action_cam_down)
+        self.iface.registerMainWindowAction(self._action_cam_down, '')
+
+        _cam_submenu.addSeparator()
+
+        self._action_cam_auto = QAction(QIcon(_cam_icon), self.tr(u'Habilitar deslocamento / Enable Displacement'), self.iface.mainWindow())
+        self._action_cam_auto.setToolTip(self.tr(u'Ativa/desativa o deslocamento automático do canvas / Enable/disable automatic canvas displacement'))
+        self._action_cam_auto.setCheckable(True)
+        self._action_cam_auto.triggered.connect(
+            lambda: self.tool_camera_displacement.set_auto(self._action_cam_auto.isChecked()))
+        self.tool_camera_displacement.set_auto_action(self._action_cam_auto)
+        _cam_submenu.addAction(self._action_cam_auto)
+
+        self._action_cam_config = QAction(QIcon(_config_icon), self.tr(u'Configurar / Configure'), self.iface.mainWindow())
+        self._action_cam_config.setToolTip(self.tr(u'Define o passo (% da tela) e o intervalo automático em segundos / Set step size (% of screen) and auto interval in seconds'))
+        self._action_cam_config.triggered.connect(self.tool_camera_displacement.configure)
+        _cam_submenu.addAction(self._action_cam_config)
+
+        self._additional_menu.addMenu(_cam_submenu)
 
         _autosave_icon = self._icon('AutoSave.png') if os.path.exists(self._icon('AutoSave.png')) else self._icon('icon-geral.png')
         _autosave_submenu = QMenu(self._additional_menu)
@@ -586,7 +866,68 @@ class rthproject:
         self._additional_btn.setMenu(self._additional_menu)
         self._additional_widget_action = self.iface.addToolBarWidget(self._additional_btn)
 
-        # ── 7. Informações / Info ─────────────────────────────────────────────
+        # ── 9. RTH World Explorer (dropdown) ─────────────────────────────────
+        _explorer_icon = self._icon('Rth-World.png') if os.path.exists(self._icon('Rth-World.png')) else self._icon('icon-geral.png')
+        self._explorer_btn = self._make_dropdown_btn(_explorer_icon, u'RTH World Explorer')
+        self._explorer_menu = QMenu(self._explorer_btn)
+
+        # Site do Aplicativo de Celular
+        _act = QAction(QIcon(self._icon('DocApp.png')), self.tr(u'Site do Aplicativo de Celular / Mobile App Website'), self.iface.mainWindow())
+        _act.triggered.connect(lambda: QDesktopServices.openUrl(QUrl('https://rithon.com.br/pages/rth-explorer/')))
+        self._explorer_menu.addAction(_act)
+
+        # Aplicativo na Playstore
+        _act = QAction(QIcon(self._icon('PlaystoreAPP.png')), self.tr(u'Aplicativo na Playstore / App on Playstore'), self.iface.mainWindow())
+        _act.triggered.connect(lambda: QDesktopServices.openUrl(QUrl('https://play.google.com/store/apps/details?id=com.rth.rth_world_explorer')))
+        self._explorer_menu.addAction(_act)
+
+        self._explorer_menu.addSeparator()
+
+        # Importar Rota GPX
+        _act = QAction(QIcon(self._icon('ImportRota.png')), self.tr(u'Importar Rota / Import Route'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_import_route_gpx.run)
+        self._explorer_menu.addAction(_act)
+
+        # Importar Pontos de Validação
+        _act = QAction(QIcon(self._icon('ImportPoints.png')), self.tr(u'Importar Pontos de Validação / Import Validation Points'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_import_validation_pts.run)
+        self._explorer_menu.addAction(_act)
+
+        # Importar Pontos de Benfeitorias
+        _benf_icon = self._icon('ImportBenf.png') if os.path.exists(self._icon('ImportBenf.png')) else self._icon('ImportPoints.png')
+        _act = QAction(QIcon(_benf_icon), self.tr(u'Importar Pontos de Benfeitorias / Import Infrastructure Points'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_import_benfeitorias.run)
+        self._explorer_menu.addAction(_act)
+
+        # Importar Parâmetros Produtivos
+        _act = QAction(QIcon(self._icon('ImportPP.png')), self.tr(u'Importar Parâmetros Produtivos / Import Productive Parameters'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_import_productive_params.run)
+        self._explorer_menu.addAction(_act)
+
+        self._explorer_menu.addSeparator()
+
+        # Pontos de GPS para Polígono
+        _ptp_icon = self._icon('pts2poly.png') if os.path.exists(self._icon('pts2poly.png')) else self._icon('icon.png')
+        _act = QAction(QIcon(_ptp_icon), self.tr(u'Pontos de GPS para Polígono / GPS Points to Polygon'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_pts_to_poly.run)
+        self._explorer_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('grid.png')), self.tr(u'Grid de Pontos / Point Grid'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_point_grid.run)
+        self._explorer_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('gridexport.png')), self.tr(u'Exportar Grid CSV / Export Grid CSV'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_export_csv.run)
+        self._explorer_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('gridimport.png')), self.tr(u'Importar Grid CSV / Import Grid CSV'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_import_csv.run)
+        self._explorer_menu.addAction(_act)
+
+        self._explorer_btn.setMenu(self._explorer_menu)
+        self._explorer_widget_action = self.iface.addToolBarWidget(self._explorer_btn)
+
+        # ── 10. Informações / Info ───────────────────────────────────────────
         _info_icon = self._icon('info.png') if os.path.exists(self._icon('info.png')) else self._icon('icon-geral.png')
         self._info_btn = self._make_dropdown_btn(_info_icon, u'Informações / Info')
         self._info_btn.setPopupMode(QToolButton.DelayedPopup)
@@ -599,6 +940,8 @@ class rthproject:
             self.tool_auto_save.stop()
         if hasattr(self, 'tool_layer_switcher'):
             self.tool_layer_switcher.stop()
+        if hasattr(self, 'tool_camera_displacement'):
+            self.tool_camera_displacement.stop()
         for action in self.actions:
             self.iface.removePluginMenu(self.menu, action)
             self.iface.removeToolBarIcon(action)
@@ -612,7 +955,9 @@ class rthproject:
         toolbar = self.iface.mainWindow().findChild(QToolBar, 'mPluginToolBar')
         for attr in ('_gee_widget_action', '_agro_widget_action', '_geodata_widget_action',
                      '_styles_widget_action', '_layouts_widget_action',
-                     '_additional_widget_action', '_info_widget_action'):
+                     '_rth_ml_widget_action', '_sr_widget_action',
+                     '_additional_widget_action', '_explorer_widget_action',
+                     '_info_widget_action'):
             if hasattr(self, attr) and getattr(self, attr) and toolbar:
                 toolbar.removeAction(getattr(self, attr))
 

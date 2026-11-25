@@ -59,7 +59,7 @@ class ProdesDialog(QDialog):
         layout.addWidget(lbl_scope)
 
         scope_row = QHBoxLayout()
-        self.radio_brasil = QRadioButton('Brasil Inteiro')
+        self.radio_brasil = QRadioButton('Brasil Inteiro / Entire Brazil')
         self.radio_bioma  = QRadioButton('Bioma Específico / Specific Biome')
         self.radio_brasil.setChecked(True)
         self._scope_group = QButtonGroup()

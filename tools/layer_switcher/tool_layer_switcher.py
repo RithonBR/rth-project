@@ -16,15 +16,17 @@ Persistência: QSettings (rth_project/layer_switcher/*)
 """
 import json
 
-from qgis.PyQt.QtCore import QCoreApplication, QSettings
+from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTimer
 from qgis.core import Qgis, QgsProject
 
 
 MODE_SIMPLE = 'simple'
 MODE_MULTI  = 'multi'
 
-SETTINGS_MODE   = 'rth_project/layer_switcher/mode'
-SETTINGS_GROUPS = 'rth_project/layer_switcher/groups'
+SETTINGS_MODE         = 'rth_project/layer_switcher/mode'
+SETTINGS_GROUPS       = 'rth_project/layer_switcher/groups'
+SETTINGS_AUTO_ENABLED = 'rth_project/layer_switcher/auto_enabled'
+SETTINGS_AUTO_SECS    = 'rth_project/layer_switcher/auto_secs'
 
 
 # ---------------------------------------------------------------------------
@@ -32,7 +34,7 @@ SETTINGS_GROUPS = 'rth_project/layer_switcher/groups'
 # ---------------------------------------------------------------------------
 
 class LayerGroup:
-    def __init__(self, name='Grupo 1', layer_ids=None):
+    def __init__(self, name='Grupo 1 / Group 1', layer_ids=None):
         self.name      = name
         self.layer_ids = list(layer_ids or [])
         self._index    = None   # posição atual no ciclo
@@ -43,7 +45,7 @@ class LayerGroup:
     @classmethod
     def from_dict(cls, d):
         return cls(
-            name      = d.get('name', 'Grupo 1'),
+            name      = d.get('name', 'Grupo 1 / Group 1'),
             layer_ids = d.get('layer_ids', []),
         )
 
@@ -76,7 +78,19 @@ class LayerSwitcherTool:
 
         self._dlg = None
 
+        # Auto-switch timer: avança automaticamente a cada N segundos /
+        # Auto-switch timer: automatically advances every N seconds
+        self._auto_enabled = False
+        self._auto_secs    = 5
+        self._auto_action  = None   # QAction do menu para sincronizar checkmark
+        self._auto_timer   = QTimer()
+        self._auto_timer.timeout.connect(self._auto_tick)
+
         self._load_config()
+
+        # Per-project persistence: save/load groups when a QGIS project is saved/opened
+        QgsProject.instance().writeProject.connect(self._save_project_config)
+        QgsProject.instance().readProject.connect(self._load_project_config)
 
     def tr(self, msg):
         return QCoreApplication.translate('LayerSwitcherTool', msg)
@@ -167,6 +181,77 @@ class LayerSwitcherTool:
         self._dlg.raise_()
         self._dlg.activateWindow()
 
+    def set_auto_action(self, action):
+        """Registra a QAction do menu para manter o checkmark sincronizado.
+        Register the menu QAction to keep checkmark in sync.
+        """
+        self._auto_action = action
+        action.setChecked(self._auto_enabled)
+
+    def set_auto(self, enabled, *_):
+        """Habilita ou desabilita a alternância automática / Enable or disable auto-switching."""
+        self._auto_enabled = bool(enabled)
+        self._save_config()
+        if self._auto_enabled:
+            self._start_auto_timer()
+        else:
+            self._stop_auto_timer()
+        if self._auto_action is not None:
+            self._auto_action.setChecked(self._auto_enabled)
+
+    def configure_auto(self, *_):
+        """Abre diálogo para configurar o intervalo da alternância automática / Open dialog to configure auto-switch interval."""
+        from qgis.PyQt.QtWidgets import (
+            QDialog, QVBoxLayout, QHBoxLayout, QLabel,
+            QSpinBox, QDialogButtonBox,
+        )
+
+        dlg = QDialog(self.iface.mainWindow())
+        dlg.setWindowTitle(self.tr(u'Alternância Automática — Intervalo / Auto Switch — Interval'))
+
+        layout = QVBoxLayout(dlg)
+
+        row = QHBoxLayout()
+        row.addWidget(QLabel(self.tr(u'Intervalo (segundos) / Interval (seconds):')))
+        spin = QSpinBox()
+        spin.setRange(1, 3600)
+        spin.setValue(self._auto_secs)
+        row.addWidget(spin)
+        layout.addLayout(row)
+
+        try:
+            std = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        except AttributeError:
+            std = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        btns = QDialogButtonBox(std)
+        btns.accepted.connect(dlg.accept)
+        btns.rejected.connect(dlg.reject)
+        layout.addWidget(btns)
+
+        if dlg.exec_():
+            self._auto_secs = spin.value()
+            self._save_config()
+            if self._auto_enabled:
+                self._start_auto_timer()   # reinicia com novo intervalo / restart with new interval
+
+    def _start_auto_timer(self):
+        """Inicia o timer de alternância automática / Start the auto-switch timer."""
+        self._auto_timer.stop()
+        self._auto_timer.setInterval(self._auto_secs * 1000)
+        self._auto_timer.start()
+        if self._auto_action is not None:
+            self._auto_action.setChecked(True)
+
+    def _stop_auto_timer(self):
+        """Para o timer de alternância automática / Stop the auto-switch timer."""
+        self._auto_timer.stop()
+        if self._auto_action is not None:
+            self._auto_action.setChecked(False)
+
+    def _auto_tick(self):
+        """Chamado pelo timer a cada N segundos — avança uma camada / Called by timer every N seconds — advance one layer."""
+        self.cycle_next()
+
     def apply_config(self, mode, groups):
         """Chamado pelo diálogo ao aplicar as configurações / Called by dialog on Apply."""
         root = QgsProject.instance().layerTreeRoot()
@@ -202,6 +287,7 @@ class LayerSwitcherTool:
             g._index = None
 
         self._save_config()
+        self._save_project_config()
 
     def get_mode(self):
         return self._mode
@@ -214,7 +300,12 @@ class LayerSwitcherTool:
 
     def stop(self):
         """Chamado no unload do plugin / Called on plugin unload."""
-        pass   # sem recursos dinâmicos para liberar / no dynamic resources to release
+        self._stop_auto_timer()
+        try:
+            QgsProject.instance().writeProject.disconnect(self._save_project_config)
+            QgsProject.instance().readProject.disconnect(self._load_project_config)
+        except Exception:
+            pass
 
     # ------------------------------------------------------------------
     # Grupo ativo / Active group helpers
@@ -288,7 +379,7 @@ class LayerSwitcherTool:
         if not layers:
             self.iface.messageBar().pushMessage(
                 'RTH',
-                self.tr(u'Grupo "{0}": sem camadas configuradas. Abra Configurar Grupos.').format(group.name),
+                self.tr(u'Grupo "{0}": sem camadas configuradas. Abra Configurar Grupos. / Group "{0}": no layers configured. Open Configure Groups.').format(group.name),
                 level=Qgis.MessageLevel.Warning, duration=4
             )
             return
@@ -333,6 +424,38 @@ class LayerSwitcherTool:
     # Persistência / Persistence
     # ------------------------------------------------------------------
 
+    def _save_project_config(self, *_):
+        """Salva configuração no projeto QGIS aberto (por projeto) / Save config in the open QGIS project (per-project)."""
+        try:
+            proj = QgsProject.instance()
+            proj.writeEntry('rth_layer_switcher', 'mode', self._mode)
+            proj.writeEntry('rth_layer_switcher', 'groups',
+                            json.dumps([g.to_dict() for g in self._groups]))
+        except Exception:
+            pass
+
+    def _load_project_config(self, *_):
+        """Carrega configuração do projeto QGIS aberto; ignora se não houver dados salvos / Load config from open QGIS project; ignore if no saved data."""
+        try:
+            proj = QgsProject.instance()
+            mode, ok_mode = proj.readEntry('rth_layer_switcher', 'mode', '')
+            raw,  ok_raw  = proj.readEntry('rth_layer_switcher', 'groups', '')
+
+            if ok_mode and mode in (MODE_SIMPLE, MODE_MULTI):
+                self._mode = mode
+
+            if ok_raw and raw:
+                data = json.loads(raw)
+                groups = [LayerGroup.from_dict(d) for d in data]
+                if groups:
+                    self._groups = groups
+                    self._active_group_idx = max(
+                        0, min(self._active_group_idx, len(self._groups) - 1))
+                    for g in self._groups:
+                        g._index = None
+        except Exception:
+            pass
+
     def _load_config(self):
         s = QSettings()
         self._mode = s.value(SETTINGS_MODE, MODE_SIMPLE)
@@ -345,8 +468,16 @@ class LayerSwitcherTool:
                     self._groups = [LayerGroup()]
             except Exception:
                 self._groups = [LayerGroup()]
+        # Auto-switch: carrega habilitado/intervalo; retoma timer se estava ativo /
+        # Auto-switch: load enabled/interval; resume timer if it was active
+        self._auto_enabled = s.value(SETTINGS_AUTO_ENABLED, False, type=bool)
+        self._auto_secs    = s.value(SETTINGS_AUTO_SECS,    5,     type=int)
+        if self._auto_enabled:
+            self._start_auto_timer()
 
     def _save_config(self):
         s = QSettings()
-        s.setValue(SETTINGS_MODE,   self._mode)
-        s.setValue(SETTINGS_GROUPS, json.dumps([g.to_dict() for g in self._groups]))
+        s.setValue(SETTINGS_MODE,         self._mode)
+        s.setValue(SETTINGS_GROUPS,       json.dumps([g.to_dict() for g in self._groups]))
+        s.setValue(SETTINGS_AUTO_ENABLED, self._auto_enabled)
+        s.setValue(SETTINGS_AUTO_SECS,    self._auto_secs)

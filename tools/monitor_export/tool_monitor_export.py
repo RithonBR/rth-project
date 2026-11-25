@@ -153,7 +153,7 @@ class MonitorExportDialog(QDialog):
         layout.setContentsMargins(12, 12, 12, 12)
 
         # ── Cabeçalho / Header ────────────────────────────────────────────────
-        lbl_title = QLabel('Exportar para Monitor Agrícola')
+        lbl_title = QLabel('Exportar para Monitor Agrícola / Export to Agricultural Monitor')
         lbl_title.setAlignment(Qt.AlignCenter)
         lbl_title.setStyleSheet('font-size:13px; font-weight:bold;')
         layout.addWidget(lbl_title)

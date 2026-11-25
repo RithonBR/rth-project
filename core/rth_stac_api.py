@@ -41,6 +41,7 @@ _COLLECTION_ROUTING = {
     # Microsoft Planetary Computer / Microsoft Planetary Computer
     'sentinel-2-l2a':      (STAC_PC,        'sentinel-2-l2a'),
     'landsat-c2-l2':       (STAC_PC,        'landsat-c2-l2'),
+    'sentinel-1-rtc':      (STAC_PC,        'sentinel-1-rtc'),
     # AWS Element84 Earth Search / AWS Element84 Earth Search
     'sentinel-2-l2a-aws':  (STAC_ELEMENT84, 'sentinel-2-l2a'),
 }
@@ -75,10 +76,11 @@ def _route_for(collection_id):
 # ── Prefixos para agrupamento de coleções por satélite ───────────────────────
 # Ordem importa: CBERS-4A deve vir antes de CBERS-4 / Order matters: CBERS-4A must come before CBERS-4
 _SAT_PREFIXES = [
-    # 's2-' e 's2_' evitam capturar Sentinel-1 e Sentinel-3 / 's2-' and 's2_' avoid Sentinel-1 and Sentinel-3
+    # 's2-' e 's2_' evitam capturar Sentinel-1 / 's2-' and 's2_' avoid capturing Sentinel-1
     ('Sentinel-2',  ('s2-', 's2_', 'sentinel-2')),
     ('Landsat',     ('landsat', 'lc8', 'lc9', 'lc7')),
     ('Amazonia-1',  ('amz1',)),
+    ('Sentinel-1',  ('sentinel-1',)),
     ('CBERS-4A',    ('cb4a', 'cbers4a')),
     ('CBERS-4',     ('cb4-', 'cb4_', 'cbers4-', 'cbers4_')),
     ('CBERS-2B',    ('cbers2b', 'cb2b')),
@@ -127,8 +129,11 @@ def search_stac(collection_id, bbox, date_ini, date_fim, cloud_max, page=1, limi
         'bbox':        bbox,
         'datetime':    '{}/{}'.format(date_ini, date_fim),
         'limit':       limit,
-        'page':        page,
     }
+    # AWS Element84 e outros endpoints STAC v1 não aceitam 'page' no body POST —
+    # usam 'token' para paginação. Só enviamos 'page' para o BDC/INPE.
+    if endpoint == STAC_BDC:
+        payload['page'] = page
     data = json.dumps(payload).encode('utf-8')
     req = urllib.request.Request(
         search_url,

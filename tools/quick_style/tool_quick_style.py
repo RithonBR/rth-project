@@ -19,6 +19,7 @@ from qgis.core import (
 )
 
 
+
 class QuickStyleTool:
     """Gerencia estilos rápidos e layouts rápidos / Manages quick styles and quick layouts."""
 
@@ -231,14 +232,12 @@ class QuickStyleTool:
             layout.setName(self._label(os.path.basename(qpt_path)))
             project.layoutManager().addLayout(layout)
 
-            # Sync every map item to the current canvas view;
-            # all other items (title, legend, north arrow…) are left as-is.
-            canvas = self.iface.mapCanvas()
+            canvas        = self.iface.mapCanvas()
             canvas_extent = canvas.extent()
             canvas_crs    = canvas.mapSettings().destinationCrs()
             for item in layout.items():
                 if isinstance(item, QgsLayoutItemMap):
-                    item.setKeepLayerSet(False)   # use current project layers
+                    item.setKeepLayerSet(False)
                     item.setCrs(canvas_crs)
                     item.zoomToExtent(canvas_extent)
 
@@ -249,6 +248,7 @@ class QuickStyleTool:
                 'RTH',
                 self.tr(u'Erro ao abrir layout / Error opening layout: {0}').format(str(e)),
                 level=Qgis.MessageLevel.Critical, duration=5)
+
 
     # ------------------------------------------------------------------
     # Utilitários / Utilities

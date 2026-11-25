@@ -216,19 +216,19 @@ class ArcGISExportTool:
         dlg = self._dlg
 
         if not HAS_OGR:
-            dlg.log_error(self.tr(u'GDAL/OGR não encontrado. Verifique a instalação do QGIS.'))
+            dlg.log_error(self.tr(u'GDAL/OGR não encontrado. Verifique a instalação do QGIS. / GDAL/OGR not found. Check your QGIS installation.'))
             dlg.set_busy(False)
             return
 
         driver = ogr.GetDriverByName('OpenFileGDB')
         if driver is None:
-            dlg.log_error(self.tr(u'Driver OpenFileGDB não disponível (requer GDAL >= 3.6).'))
+            dlg.log_error(self.tr(u'Driver OpenFileGDB não disponível (requer GDAL >= 3.6). / OpenFileGDB driver not available (requires GDAL >= 3.6).'))
             dlg.set_busy(False)
             return
 
         out_dir = params['out_dir']
         if not out_dir:
-            dlg.log_error(self.tr(u'Selecione um diretório de saída antes de continuar.'))
+            dlg.log_error(self.tr(u'Selecione um diretório de saída antes de continuar. / Select an output directory before continuing.'))
             dlg.set_busy(False)
             return
 
@@ -246,7 +246,7 @@ class ArcGISExportTool:
 
         total = len(vector_layers) + len(raster_layers)
         if total == 0:
-            dlg.log_warn(self.tr(u'Nenhuma camada encontrada para exportar.'))
+            dlg.log_warn(self.tr(u'Nenhuma camada encontrada para exportar. / No layers found to export.'))
             dlg.set_busy(False)
             return
 
@@ -265,10 +265,10 @@ class ArcGISExportTool:
             import shutil
             shutil.rmtree(gdb_path)
 
-        dlg.log(self.tr(u'Criando geodatabase: {0}').format(gdb_name))
+        dlg.log(self.tr(u'Criando geodatabase / Creating geodatabase: {0}').format(gdb_name))
         ds = driver.CreateDataSource(gdb_path)
         if ds is None:
-            dlg.log_error(self.tr(u'Falha ao criar a geodatabase. Verifique permissões na pasta.'))
+            dlg.log_error(self.tr(u'Falha ao criar a geodatabase. Verifique permissões na pasta. / Failed to create geodatabase. Check folder permissions.'))
             dlg.set_busy(False)
             return
 
@@ -278,7 +278,7 @@ class ArcGISExportTool:
 
         for layer in vector_layers:
             step += 1
-            dlg.set_progress(step, total, self.tr(u'Exportando: {0}').format(layer.name()))
+            dlg.set_progress(step, total, self.tr(u'Exportando / Exporting: {0}').format(layer.name()))
             results.append(self._export_vector(ds, layer, used_names,
                                                params.get('export_sld', False), out_dir))
             QApplication.processEvents()
@@ -286,7 +286,7 @@ class ArcGISExportTool:
         raster_out = os.path.join(out_dir, 'rasters')
         for layer in raster_layers:
             step += 1
-            dlg.set_progress(step, total, self.tr(u'Exportando raster: {0}').format(layer.name()))
+            dlg.set_progress(step, total, self.tr(u'Exportando raster / Exporting raster: {0}').format(layer.name()))
             results.append(self._export_raster(layer, raster_out))
             QApplication.processEvents()
 
@@ -300,7 +300,7 @@ class ArcGISExportTool:
 
         dlg.set_progress(total, total, '')
         dlg.log('─' * 50)
-        dlg.log(self.tr(u'Concluído: {0} exportada(s)  |  {1} erro(s)').format(exported, failed))
+        dlg.log(self.tr(u'Concluído / Done: {0} exportada(s) / exported  |  {1} erro(s) / error(s)').format(exported, failed))
         dlg.log(self.tr(u'GDB: {0}').format(gdb_path))
         dlg.set_busy(False)
 
@@ -461,13 +461,13 @@ class ArcGISExportTool:
             ogr_layer.CommitTransaction()
 
             if invalid_fixed:
-                dlg.log_warn('  [{0}] {1} geometria(s) inválida(s) corrigidas automaticamente.'.format(
+                dlg.log_warn('  [{0}] {1} geometria(s) inválida(s) corrigidas / invalid geometry(ies) fixed.'.format(
                     layer.name(), invalid_fixed))
             if coerced_count:
-                dlg.log_warn('  [{0}] {1} geometria(s) com tipo convertido após correção.'.format(
+                dlg.log_warn('  [{0}] {1} geometria(s) com tipo convertido / geometry type(s) converted.'.format(
                     layer.name(), coerced_count))
             if skipped_count:
-                dlg.log_warn('  [{0}] {1} feição(ões) sem geometria válida após correção (atributos preservados).'.format(
+                dlg.log_warn('  [{0}] {1} feição(ões) sem geometria válida / feature(s) with no valid geometry (atributos preservados / attributes preserved).'.format(
                     layer.name(), skipped_count))
             if corrupt_count:
                 dlg.log_warn('  [{0}] {1} feição(ões) ignorada(s) por dados corrompidos no arquivo fonte / '
@@ -479,15 +479,15 @@ class ArcGISExportTool:
             if invalid_fixed or coerced_count or skipped_count or corrupt_count:
                 parts = []
                 if invalid_fixed:
-                    parts.append('{} geom corrigida(s)'.format(invalid_fixed))
+                    parts.append('{} geom corrigida(s) / fixed'.format(invalid_fixed))
                 if corrupt_count:
-                    parts.append('{} corrompida(s) ignorada(s)'.format(corrupt_count))
+                    parts.append('{} corrompida(s) ignorada(s) / corrupt skipped'.format(corrupt_count))
                 if coerced_count:
-                    parts.append('{} tipo convertido'.format(coerced_count))
+                    parts.append('{} tipo convertido / type converted'.format(coerced_count))
                 if skipped_count:
-                    parts.append('{} sem geom'.format(skipped_count))
+                    parts.append('{} sem geom / no geom'.format(skipped_count))
                 fixes_info = '  ⚠ ' + ', '.join(parts)
-            dlg.log('[OK] {0}  →  {1}{2}  ({3} feições, CRS: {4}){5}'.format(
+            dlg.log('[OK] {0}  →  {1}{2}  ({3} feições / features, CRS: {4}){5}'.format(
                 layer.name(), safe_name, group_info, feat_count,
                 layer.crs().authid(), fixes_info))
 
@@ -497,7 +497,7 @@ class ArcGISExportTool:
                 if ok_sld:
                     dlg.log('     SLD: {0}.sld'.format(safe_name))
                 else:
-                    dlg.log_warn('     SLD não exportado: {0}'.format(msg_sld))
+                    dlg.log_warn('     SLD não exportado / not exported: {0}'.format(msg_sld))
 
             result['ok']           = True
             result['geom_fixed']   = invalid_fixed
@@ -633,7 +633,7 @@ class ArcGISExportTool:
                 _w('Gerado por RTH PROJECT QGIS Plugin\n')
                 _w('https://rithon.com.br\n')
 
-            dlg.log(self.tr(u'Relatório salvo: relatorio_exportacao.txt'))
+            dlg.log(self.tr(u'Relatório salvo / Report saved: relatorio_exportacao.txt'))
 
         except Exception as exc:
-            dlg.log_warn(self.tr(u'Falha ao gerar relatório: {0}').format(str(exc)))
+            dlg.log_warn(self.tr(u'Falha ao gerar relatório / Failed to generate report: {0}').format(str(exc)))

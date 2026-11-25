@@ -44,7 +44,7 @@ class _GroupPanel(QWidget):
         name_row = QHBoxLayout()
         name_row.addWidget(QLabel(self.tr(u'Nome do grupo / Group name:')))
         self.edit_name = QLineEdit(self._group.name)
-        self.edit_name.setPlaceholderText(self.tr(u'Ex: Satélites, Talhões, Análises...'))
+        self.edit_name.setPlaceholderText(self.tr(u'Ex: Satélites / Satellites, Talhões / Fields, Análises / Analyses...'))
         name_row.addWidget(self.edit_name)
         layout.addLayout(name_row)
 
@@ -173,18 +173,26 @@ class _GroupPanel(QWidget):
         self.list_project.sortItems()
 
     def _move_up(self):
-        row = self.list_group.currentRow()
-        if row > 0:
+        rows = sorted(self.list_group.row(it) for it in self.list_group.selectedItems())
+        if not rows or rows[0] == 0:
+            return
+        for row in rows:
             item = self.list_group.takeItem(row)
             self.list_group.insertItem(row - 1, item)
-            self.list_group.setCurrentRow(row - 1)
+        for row in rows:
+            self.list_group.item(row - 1).setSelected(True)
 
     def _move_down(self):
-        row = self.list_group.currentRow()
-        if 0 <= row < self.list_group.count() - 1:
+        rows = sorted(
+            (self.list_group.row(it) for it in self.list_group.selectedItems()),
+            reverse=True)
+        if not rows or rows[0] == self.list_group.count() - 1:
+            return
+        for row in rows:
             item = self.list_group.takeItem(row)
             self.list_group.insertItem(row + 1, item)
-            self.list_group.setCurrentRow(row + 1)
+        for row in sorted(rows):
+            self.list_group.item(row + 1).setSelected(True)
 
     # ------------------------------------------------------------------
     # Leitura do estado da UI / Read UI state
@@ -197,7 +205,7 @@ class _GroupPanel(QWidget):
             for i in range(self.list_group.count())
         ]
         return LayerGroup(
-            name      = self.edit_name.text().strip() or self.tr(u'Grupo'),
+            name      = self.edit_name.text().strip() or self.tr(u'Grupo / Group'),
             layer_ids = layer_ids,
         )
 
@@ -231,7 +239,7 @@ class LayerSwitcherConfigDialog(QDialog):
         self.radio_simple = QRadioButton(
             self.tr(u'Simples — selecione 2+ camadas no painel e use o atalho / Simple — select 2+ layers in panel and use shortcut'))
         self.radio_multi = QRadioButton(
-            self.tr(u'Múltiplos Grupos — configure grupos abaixo e use "Próximo Grupo" para alternar / Multi-Group'))
+            self.tr(u'Múltiplos Grupos — configure grupos abaixo e use "Próximo Grupo" para alternar / Multi-Group — configure groups below and use "Next Group" to switch'))
         self.radio_simple.setChecked(True)
 
         lbl_tip = QLabel(self.tr(
@@ -321,7 +329,7 @@ class LayerSwitcherConfigDialog(QDialog):
     def _add_group_tab(self, checked=False, group=None):
         if not isinstance(group, LayerGroup):
             group = LayerGroup(
-                name=self.tr(u'Grupo {0}').format(self.tab_widget.count() + 1))
+                name=self.tr(u'Grupo / Group {0}').format(self.tab_widget.count() + 1))
 
         panel = _GroupPanel(group, self)
         panel.populate_project_layers()
@@ -341,7 +349,7 @@ class LayerSwitcherConfigDialog(QDialog):
         if self.tab_widget.count() <= 1:
             panel = self.tab_widget.widget(0)
             if panel:
-                panel.edit_name.setText(self.tr(u'Grupo 1'))
+                panel.edit_name.setText(self.tr(u'Grupo 1 / Group 1'))
                 panel.list_group.clear()
                 panel.populate_project_layers()
         else:

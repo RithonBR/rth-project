@@ -15,15 +15,23 @@ __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
 
 import os
 import unittest
-from qgis.core import (
-    QgsProviderRegistry,
-    QgsCoordinateReferenceSystem,
-    QgsRasterLayer)
 
-from .utilities import get_qgis_app
-QGIS_APP = get_qgis_app()
+try:
+    try:
+        from .utilities import get_qgis_app
+    except (ImportError, SystemError):
+        from utilities import get_qgis_app
+    from qgis.core import (
+        QgsProviderRegistry,
+        QgsCoordinateReferenceSystem,
+        QgsRasterLayer)
+    QGIS_APP = get_qgis_app()
+    _QGIS_AVAILABLE = QGIS_APP is not None and QGIS_APP[0] is not None
+except Exception:
+    _QGIS_AVAILABLE = False
 
 
+@unittest.skipUnless(_QGIS_AVAILABLE, 'QGIS runtime not available')
 class QGISTest(unittest.TestCase):
     """Test the QGIS Environment"""
 

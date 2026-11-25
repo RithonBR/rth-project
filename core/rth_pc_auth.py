@@ -10,10 +10,13 @@ rth_pc_auth — Planetary Computer URL signing via SAS token
 
 # Biblioteca padrão para requisições HTTP / Standard library for HTTP requests
 import urllib.request
+import urllib.error
 # Biblioteca padrão para codificação de parâmetros de URL / Standard library for URL parameter encoding
 import urllib.parse
 # Biblioteca padrão para leitura de JSON / Standard library for JSON parsing
 import json
+# Biblioteca padrão para pausa entre tentativas / Standard library for retry pause
+import time
 
 # Endpoint público de assinatura do Planetary Computer / Planetary Computer public signing endpoint
 _PC_SIGN_URL = 'https://planetarycomputer.microsoft.com/api/sas/v1/sign'
@@ -35,29 +38,39 @@ def is_pc_href(href):
 def sign_pc_href(href):
     """Solicita uma URL assinada (SAS token) para um asset do Planetary Computer / Request a signed URL (SAS token) for a Planetary Computer asset.
 
+    Tenta até 2 vezes para erros transitórios (409 Conflict, 429 Rate-limit, 503 Unavailable).
+    Retries up to 2 times for transient errors (409 Conflict, 429 Rate-limit, 503 Unavailable).
+
     :param href: URL original do asset / original asset URL
     :returns: URL assinada pronta para uso, ou a original em caso de falha / signed URL ready to use, or original on failure
     :rtype: str
     """
-    try:
-        # Codifica a URL do asset como parâmetro de query / Encode asset URL as query parameter
-        params = urllib.parse.urlencode({'href': href})
-        # Monta a requisição GET ao endpoint de assinatura / Build GET request to signing endpoint
-        req = urllib.request.Request(
-            '{}?{}'.format(_PC_SIGN_URL, params),
-            headers={'Accept': 'application/json'},
-        )
-        # Valida o esquema da URL antes de abrir / Validate URL scheme before opening
-        if not req.full_url.startswith(('https://', 'http://')):
-            raise ValueError('URL scheme not permitted: {}'.format(req.full_url))
-        # Timeout curto — o serviço de assinatura é rápido / Short timeout — signing service is fast
-        with urllib.request.urlopen(req, timeout=10) as resp:  # nosec B310
-            # Resposta: {"href": "url_assinada", "msft:expiry": "..."} / Response: {"href": "signed_url", "msft:expiry": "..."}
-            signed = json.loads(resp.read().decode('utf-8'))
-            return signed.get('href', href)
-    except Exception:
-        # Em caso de falha retorna a URL original / On failure return the original URL
+    # Códigos HTTP que merecem uma nova tentativa / HTTP codes worth retrying
+    _RETRYABLE = frozenset({409, 429, 503})
+
+    params = urllib.parse.urlencode({'href': href})
+    sign_url = '{}?{}'.format(_PC_SIGN_URL, params)
+    if not sign_url.startswith(('https://', 'http://')):
         return href
+
+    for attempt in range(2):
+        try:
+            req = urllib.request.Request(sign_url, headers={'Accept': 'application/json'})
+            with urllib.request.urlopen(req, timeout=15) as resp:  # nosec B310
+                # Resposta: {"href": "url_assinada", "msft:expiry": "..."} / Response: {"href": "signed_url", "msft:expiry": "..."}
+                signed = json.loads(resp.read().decode('utf-8'))
+                return signed.get('href', href)
+        except urllib.error.HTTPError as exc:
+            if exc.code in _RETRYABLE and attempt == 0:
+                # Pausa curta e tenta de novo / Short pause and retry
+                time.sleep(1.5)
+                continue
+            # Erro definitivo — devolve original para GDAL tentar / Definitive error — return original for GDAL to try
+            return href
+        except Exception:
+            return href
+
+    return href
 
 
 # Mapeamento bucket → região AWS para evitar redirect 301 que quebra byte-range do vsicurl

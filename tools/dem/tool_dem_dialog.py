@@ -19,7 +19,7 @@ from qgis.PyQt.QtWidgets import (
     QButtonGroup, QWidget
 )
 # Módulo Qt para alinhamento e sinais / Qt module for alignment and signals
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import Qt, QThread, pyqtSignal
 
 # Módulos QGIS para CRS, transformação e camadas / QGIS modules for CRS, transform and layers
 from qgis.core import (
@@ -35,6 +35,24 @@ from .tool_dem_sources   import search_topodata_items, get_copernicus_items, get
 # Utilitário de detecção de datum UTM regional / Regional UTM datum detection utility
 from core.rth_utm_utils import detect_regional_utm
 from .tool_dem_maptool   import RectangleMapTool
+
+
+class _TopoSearchThread(QThread):
+    """Busca tiles Topodata INPE via STAC em background / Searches INPE Topodata tiles via STAC in background."""
+    result = pyqtSignal(list)
+    error  = pyqtSignal(str)
+
+    def __init__(self, bbox, asset_key, parent=None):
+        super().__init__(parent)
+        self._bbox      = bbox
+        self._asset_key = asset_key
+
+    def run(self):
+        try:
+            items = search_topodata_items(self._bbox, self._asset_key)
+            self.result.emit(items)
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 class DEMDownloaderDialog(QDialog):
@@ -54,11 +72,11 @@ class DEMDownloaderDialog(QDialog):
         # Interface QGIS / QGIS interface
         self.iface = iface
         # Bounding box em WGS84 / Bounding box in WGS84
-        self._bbox = None
-        # Thread de download ativa / Active download thread
-        self._thread = None
-        # Ferramenta de desenho ativa / Active drawing tool
-        self._rect_tool = None
+        self._bbox         = None
+        self._thread       = None
+        self._rect_tool    = None
+        self._preview_thread  = None
+        self._run_tile_thread = None
         # Monta os widgets / Build widgets
         self._build_ui()
 
@@ -414,26 +432,37 @@ class DEMDownloaderDialog(QDialog):
         """Conta os tiles da área e exibe na UI sem fazer download / Count area tiles and show in UI without downloading."""
         if self._bbox is None:
             return
-        try:
-            if self._is_inpe():
-                # Consulta a API STAC para obter os tiles reais / Query STAC API to get the real tiles
-                asset_key = DATA_TYPES[self.combo_type.currentText()]
-                items = search_topodata_items(self._bbox, asset_key)
-            else:
-                # Gera localmente a grade Copernicus / Generate Copernicus grid locally
-                items = self._get_copernicus_items_for_source(self._bbox)
 
-            if not items:
-                self.lbl_tiles.setText('Nenhum tile encontrado / No tiles found')
-            elif len(items) <= 6:
-                # Mostra todos os IDs se forem poucos / Show all IDs if few
-                self.lbl_tiles.setText('{} tile(s): {}'.format(len(items), ', '.join(i[0] for i in items)))
-            else:
-                # Mostra os 4 primeiros e reticências / Show first 4 and ellipsis
-                self.lbl_tiles.setText('{} tile(s): {}, ...'.format(
-                    len(items), ', '.join(i[0] for i in items[:4])))
-        except Exception as e:
-            self.lbl_tiles.setText('Erro na busca / Search error: {}'.format(str(e)))
+        if not self._is_inpe():
+            # Copernicus — grade local, sem rede / Copernicus — local grid, no network
+            items = self._get_copernicus_items_for_source(self._bbox)
+            self._show_preview_items(items)
+            return
+
+        self.lbl_tiles.setText('Buscando tiles... / Searching tiles...')
+        if self._preview_thread and self._preview_thread.isRunning():
+            self._preview_thread.quit()
+            self._preview_thread.wait(500)
+        asset_key = DATA_TYPES[self.combo_type.currentText()]
+        self._preview_thread = _TopoSearchThread(self._bbox, asset_key, self)
+        self._preview_thread.result.connect(self._on_preview_result)
+        self._preview_thread.error.connect(self._on_preview_error)
+        self._preview_thread.start()
+
+    def _on_preview_result(self, items):
+        self._show_preview_items(items)
+
+    def _on_preview_error(self, msg):
+        self.lbl_tiles.setText('Erro na busca / Search error: {}'.format(msg))
+
+    def _show_preview_items(self, items):
+        if not items:
+            self.lbl_tiles.setText('Nenhum tile encontrado / No tiles found')
+        elif len(items) <= 6:
+            self.lbl_tiles.setText('{} tile(s): {}'.format(len(items), ', '.join(i[0] for i in items)))
+        else:
+            self.lbl_tiles.setText('{} tile(s): {}, ...'.format(
+                len(items), ', '.join(i[0] for i in items[:4])))
 
     def _on_browse(self):
         """Abre o diálogo de seleção de pasta / Open folder selection dialog."""
@@ -451,49 +480,63 @@ class DEMDownloaderDialog(QDialog):
 
     def _on_run(self):
         """Valida entradas e inicia a virtualização ou o download / Validate inputs and start virtualization or download."""
-        # Área obrigatória / Area required
         if self._bbox is None:
             self.iface.messageBar().pushMessage(
                 'RTH DEM', 'Defina uma área antes de continuar / Define an area first',
                 level=Qgis.MessageLevel.Warning, duration=4)
             return
 
-        # Bloqueia o botão durante a operação / Disable button during operation
         self.btn_run.setEnabled(False)
         self.btn_run.setText('Buscando... / Searching...')
         self.lbl_progress.setText('Obtendo tiles... / Fetching tiles...')
 
-        # Busca a lista de tiles conforme a fonte / Fetch tile list per source
-        try:
-            if self._is_inpe():
-                asset_key = DATA_TYPES[self.combo_type.currentText()]
-                items = search_topodata_items(self._bbox, asset_key)
-            else:
+        if not self._is_inpe():
+            # Copernicus — grade local, sem rede / Copernicus — local grid, no network
+            try:
                 items = self._get_copernicus_items_for_source(self._bbox)
-        except Exception as e:
-            self.iface.messageBar().pushMessage('RTH DEM', 'Erro / Error: {}'.format(str(e)), level=Qgis.MessageLevel.Warning)
-            self._reset_run_button()
+            except Exception as e:
+                self.iface.messageBar().pushMessage(
+                    'RTH DEM', 'Erro / Error: {}'.format(str(e)), level=Qgis.MessageLevel.Warning)
+                self._reset_run_button()
+                return
+            self._launch_with_items(items)
             return
 
+        # INPE — busca STAC em background para não bloquear a UI
+        if self._run_tile_thread and self._run_tile_thread.isRunning():
+            self._run_tile_thread.quit()
+            self._run_tile_thread.wait(500)
+        asset_key = DATA_TYPES[self.combo_type.currentText()]
+        self._run_tile_thread = _TopoSearchThread(self._bbox, asset_key, self)
+        self._run_tile_thread.result.connect(self._on_run_tiles_ready)
+        self._run_tile_thread.error.connect(self._on_run_tiles_error)
+        self._run_tile_thread.start()
+
+    def _on_run_tiles_ready(self, items):
+        self._launch_with_items(items)
+
+    def _on_run_tiles_error(self, msg):
+        self.iface.messageBar().pushMessage(
+            'RTH DEM', 'Erro / Error: {}'.format(msg), level=Qgis.MessageLevel.Warning)
+        self._reset_run_button()
+
+    def _launch_with_items(self, items):
+        """Inicia virtualização ou download com a lista de tiles / Start virtualization or download with tile list."""
         if not items:
             self.iface.messageBar().pushMessage(
-                'RTH DEM', 'Nenhum tile encontrado / No tiles found', level=Qgis.MessageLevel.Warning, duration=5)
+                'RTH DEM', 'Nenhum tile encontrado / No tiles found',
+                level=Qgis.MessageLevel.Warning, duration=5)
             self._reset_run_button()
             return
 
-        # Recortar pelo bbox ou cena completa / Clip by bbox or full scene
         clip_bbox = self._bbox if self.radio_clip_aoi.isChecked() else None
 
-        # Modo virtualizar / Virtualize mode
         if self.radio_virt.isChecked():
             self._virtualize(items, clip_bbox)
             self._reset_run_button()
             return
 
-        # Detecta o CRS UTM regional antes de iniciar o download / Detect regional UTM CRS before starting download
         dst_srs = self._get_dst_srs()
-
-        # Modo baixar — valida a pasta / Download mode — validate folder
         out_dir = self.edit_dir.text().strip()
         if not out_dir:
             self.iface.messageBar().pushMessage(
@@ -502,14 +545,12 @@ class DEMDownloaderDialog(QDialog):
             self._reset_run_button()
             return
 
-        # Garante que a pasta existe / Ensure folder exists
         os.makedirs(out_dir, exist_ok=True)
 
-        # Configura e inicia a thread de download / Configure and start download thread
         self.progress_bar.setMaximum(len(items))
         self.progress_bar.setValue(0)
         self.progress_bar.setVisible(True)
-        self.btn_run.setText('Baixando...')
+        self.btn_run.setText('Baixando... / Downloading...')
         self.lbl_progress.setText(
             'Iniciando {} tile(s)... / Starting {} tile(s)...'.format(len(items), len(items)))
 

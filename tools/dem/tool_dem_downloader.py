@@ -50,7 +50,7 @@ class DEMDownloaderTool:
         try:
             # Cria o diálogo apenas na primeira chamada / Create dialog only on first call
             if self._dialog is None:
-                self._dialog = DEMDownloaderDialog(self.iface)
+                self._dialog = DEMDownloaderDialog(self.iface, parent=self.iface.mainWindow())
             # Exibe e coloca em foco / Show and bring to focus
             self._dialog.show()
             self._dialog.raise_()

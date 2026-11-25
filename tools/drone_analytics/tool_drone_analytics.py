@@ -290,7 +290,7 @@ def _veg_index_group(parent_layout, title='Indice de Vegetacao / Vegetation Inde
     grp_single = QGroupBox('Banda / Band')
     gs = QHBoxLayout()
     gs.setContentsMargins(4, 4, 4, 4)
-    lbl_b1 = QLabel('Banda:')
+    lbl_b1 = QLabel('Banda / Band:')
     spin_b1 = QSpinBox(); spin_b1.setRange(1, 20); spin_b1.setValue(1)
     gs.addWidget(lbl_b1); gs.addWidget(spin_b1); gs.addStretch()
     grp_single.setLayout(gs)
@@ -350,7 +350,7 @@ def _get_veg_params(w):
     if idx < 0 or idx >= len(layers):
         raise RuntimeError(
             'Nenhuma camada raster selecionada / No raster layer selected.\n'
-            'Certifique-se de que o raster esta carregado no QGIS.')
+            'Certifique-se de que o raster esta carregado no QGIS. / Make sure the raster is loaded in QGIS.')
     source = layers[idx][1]
     mode = w['combo_type'].currentData()
     if mode == 'single':
@@ -461,7 +461,7 @@ class PlantCountDialog(QDialog):
 
         _add_header(root,
             'Contagem de Plantas / Plant Count',
-            'Detecta plantas individuais via maximos locais no indice de vegetacao.')
+            'Detecta plantas individuais via maximos locais no indice de vegetacao. / Detects individual plants via local maxima in the vegetation index.')
 
         self._veg_w = _veg_index_group(root)
 
@@ -498,7 +498,7 @@ class PlantCountDialog(QDialog):
             'Gaussian smoothing before detection (reduces false positives).')
         gp.addWidget(self.spin_sigma, 2, 1)
 
-        gp.addWidget(QLabel('Downsample (1 = resolucao original):'), 3, 0)
+        gp.addWidget(QLabel('Downsample (1 = resolucao original / original resolution):'), 3, 0)
         self.spin_ds = QSpinBox()
         self.spin_ds.setRange(1, 16); self.spin_ds.setValue(1)
         self.spin_ds.setToolTip(
@@ -521,11 +521,11 @@ class PlantCountDialog(QDialog):
             source, mode, bands = _get_veg_params(self._veg_w)
             out = self._edit_out.text().strip()
             if not out:
-                QMessageBox.warning(self, 'RTH', 'Defina o arquivo de saida.'); return
+                QMessageBox.warning(self, 'RTH', 'Defina o arquivo de saída. / Define the output file.'); return
             if not out.lower().endswith('.gpkg'): out += '.gpkg'
 
             ds_val = self.spin_ds.value()
-            prog = _progress(self, 'Calculando indice de vegetacao...')
+            prog = _progress(self, 'Calculando indice de vegetacao... / Computing vegetation index...')
             prog.show(); QApplication.processEvents()
 
             ds = _open_raster(source)
@@ -534,12 +534,12 @@ class PlantCountDialog(QDialog):
             proj = ds.GetProjection()
             ds = None
 
-            prog.setLabelText('Aplicando suavizacao gaussiana...')
+            prog.setLabelText('Aplicando suavizacao gaussiana... / Applying Gaussian smoothing...')
             QApplication.processEvents()
             smoothed = gaussian_filter(np.nan_to_num(vi, nan=0.0),
                                        sigma=self.spin_sigma.value())
 
-            prog.setLabelText('Detectando maximos locais...')
+            prog.setLabelText('Detectando maximos locais... / Detecting local maxima...')
             QApplication.processEvents()
             win = self.spin_window.value()
             local_max = (smoothed == maximum_filter(smoothed, size=win))
@@ -548,7 +548,7 @@ class PlantCountDialog(QDialog):
 
             rows_idx, cols_idx = np.where(plant_px)
 
-            prog.setLabelText('Criando camada de pontos...')
+            prog.setLabelText('Criando camada de pontos... / Creating point layer...')
             QApplication.processEvents()
 
             # Convert pixels to geographic coordinates
@@ -587,7 +587,7 @@ class PlantCountDialog(QDialog):
                 name = self._edit_name.text().strip() or 'Contagem_Plantas'
                 _load_vector(out, name, self.iface)
 
-            QMessageBox.information(self, 'RTH — Contagem de Plantas',
+            QMessageBox.information(self, 'RTH — Contagem de Plantas / Plant Count',
                 'Plantas detectadas / Plants detected: {:,}\n'
                 'Area analisada / Analysed area: {:.2f} ha\n'
                 'Densidade / Density: {:.0f} plantas/ha\n\n'
@@ -598,7 +598,7 @@ class PlantCountDialog(QDialog):
             QMessageBox.critical(self, 'RTH', str(e))
         except Exception as e:
             if 'prog' in dir(): prog.close()
-            QMessageBox.critical(self, 'RTH', 'Erro inesperado:\n{}'.format(str(e)))
+            QMessageBox.critical(self, 'RTH', 'Erro inesperado / Unexpected error:\n{}'.format(str(e)))
 
 
 # ─── 2. Detecção de Falhas de Plantio ────────────────────────────────────────
@@ -663,7 +663,7 @@ class PlantingGapsDialog(QDialog):
         self.spin_min_area.setSuffix(' m²'); self.spin_min_area.setDecimals(2)
         gp.addWidget(self.spin_min_area, 4, 1)
 
-        gp.addWidget(QLabel('Downsample (1 = resolucao original):'), 5, 0)
+        gp.addWidget(QLabel('Downsample (1 = resolucao original / original resolution):'), 5, 0)
         self.spin_ds = QSpinBox()
         self.spin_ds.setRange(1, 16); self.spin_ds.setValue(2)
         gp.addWidget(self.spin_ds, 5, 1)
@@ -682,11 +682,11 @@ class PlantingGapsDialog(QDialog):
             _check_deps()
             source, mode, bands = _get_veg_params(self._veg_w)
             out = self._edit_out.text().strip()
-            if not out: QMessageBox.warning(self, 'RTH', 'Defina o arquivo de saida.'); return
+            if not out: QMessageBox.warning(self, 'RTH', 'Defina o arquivo de saida. / Define the output file.'); return
             if not out.lower().endswith('.gpkg'): out += '.gpkg'
 
             ds_val = self.spin_ds.value()
-            prog = _progress(self, 'Calculando indice de vegetacao...')
+            prog = _progress(self, 'Calculando indice de vegetacao... / Computing vegetation index...')
             prog.show(); QApplication.processEvents()
 
             ds = _open_raster(source)
@@ -695,12 +695,12 @@ class PlantingGapsDialog(QDialog):
             proj = ds.GetProjection()
             ds = None
 
-            prog.setLabelText('Calculando mascara de vegetacao...')
+            prog.setLabelText('Calculando mascara de vegetacao... / Computing vegetation mask...')
             QApplication.processEvents()
 
             veg_mask = (~np.isnan(vi)) & (vi > self.spin_thresh.value())
 
-            prog.setLabelText('Calculando mascara de linhas de cultivo...')
+            prog.setLabelText('Calculando mascara de linhas de cultivo... / Computing crop row mask...')
             QApplication.processEvents()
 
             h, w = vi.shape
@@ -726,7 +726,7 @@ class PlantingGapsDialog(QDialog):
             struct = generate_binary_structure(2, 2)
             gaps_clean = binary_closing(gaps, structure=struct, iterations=2)
 
-            prog.setLabelText('Poligonizando falhas...')
+            prog.setLabelText('Poligonizando falhas... / Polygonizing gaps...')
             QApplication.processEvents()
 
             # Write temp raster, polygonize, filter by area
@@ -766,7 +766,7 @@ class PlantingGapsDialog(QDialog):
                 name = self._edit_name.text().strip() or 'Falhas_Plantio'
                 _load_vector(out, name, self.iface)
 
-            QMessageBox.information(self, 'RTH — Falhas de Plantio',
+            QMessageBox.information(self, 'RTH — Falhas de Plantio / Planting Gaps',
                 'Area total de falhas / Total gap area: {:.2f} m²\n'
                 'Percentual de falhas / Gap percentage: {:.1f}%\n'
                 'Area analisada / Analysed area: {:.2f} ha\n\n'
@@ -777,7 +777,7 @@ class PlantingGapsDialog(QDialog):
             QMessageBox.critical(self, 'RTH', str(e))
         except Exception as e:
             if 'prog' in dir(): prog.close()
-            QMessageBox.critical(self, 'RTH', 'Erro inesperado:\n{}'.format(str(e)))
+            QMessageBox.critical(self, 'RTH', 'Erro inesperado / Unexpected error:\n{}'.format(str(e)))
 
 
 # ─── 3. Detecção de Daninhas ─────────────────────────────────────────────────
@@ -841,7 +841,7 @@ class WeedDetectionDialog(QDialog):
         self.spin_min_area.setSuffix(' m²'); self.spin_min_area.setDecimals(3)
         gp.addWidget(self.spin_min_area, 4, 1)
 
-        gp.addWidget(QLabel('Downsample (1 = resolucao original):'), 5, 0)
+        gp.addWidget(QLabel('Downsample (1 = resolucao original / original resolution):'), 5, 0)
         self.spin_ds = QSpinBox()
         self.spin_ds.setRange(1, 16); self.spin_ds.setValue(2)
         gp.addWidget(self.spin_ds, 5, 1)
@@ -871,11 +871,11 @@ class WeedDetectionDialog(QDialog):
             _check_deps()
             source, mode, bands = _get_veg_params(self._veg_w)
             out = self._edit_out.text().strip()
-            if not out: QMessageBox.warning(self, 'RTH', 'Defina o arquivo de saida.'); return
+            if not out: QMessageBox.warning(self, 'RTH', 'Defina o arquivo de saida. / Define the output file.'); return
             if not out.lower().endswith('.gpkg'): out += '.gpkg'
 
             ds_val = self.spin_ds.value()
-            prog = _progress(self, 'Calculando indice de vegetacao...')
+            prog = _progress(self, 'Calculando indice de vegetacao... / Computing vegetation index...')
             prog.show(); QApplication.processEvents()
 
             ds = _open_raster(source)
@@ -884,7 +884,7 @@ class WeedDetectionDialog(QDialog):
             proj = ds.GetProjection()
             ds = None
 
-            prog.setLabelText('Criando mascara de entreerrei...')
+            prog.setLabelText('Criando mascara de entreerrei... / Creating inter-row mask...')
             QApplication.processEvents()
 
             h, w = vi.shape
@@ -910,7 +910,7 @@ class WeedDetectionDialog(QDialog):
             struct = generate_binary_structure(2, 2)
             weeds_clean = binary_closing(weeds, structure=struct, iterations=1)
 
-            prog.setLabelText('Poligonizando daninhas...')
+            prog.setLabelText('Poligonizando daninhas... / Polygonizing weeds...')
             QApplication.processEvents()
 
             tmp = out.replace('.gpkg', '_tmp_weed.tif')
@@ -947,7 +947,7 @@ class WeedDetectionDialog(QDialog):
                 name = self._edit_name.text().strip() or 'Daninhas'
                 _load_vector(out, name, self.iface)
 
-            QMessageBox.information(self, 'RTH — Deteccao de Daninhas',
+            QMessageBox.information(self, 'RTH — Deteccao de Daninhas / Weed Detection',
                 'Area de daninhas / Weed area: {:.2f} m²  ({:.4f} ha)\n'
                 'Percentual de infestacao / Infestation rate: {:.1f}%\n'
                 'Area analisada / Analysed area: {:.2f} ha\n\n'
@@ -959,7 +959,7 @@ class WeedDetectionDialog(QDialog):
             QMessageBox.critical(self, 'RTH', str(e))
         except Exception as e:
             if 'prog' in dir(): prog.close()
-            QMessageBox.critical(self, 'RTH', 'Erro inesperado:\n{}'.format(str(e)))
+            QMessageBox.critical(self, 'RTH', 'Erro inesperado / Unexpected error:\n{}'.format(str(e)))
 
 
 # ─── 4. Altura de Planta (DSM - DTM) ─────────────────────────────────────────
@@ -1044,7 +1044,7 @@ class PlantHeightDialog(QDialog):
                                    'Values above will be marked as NoData (removes artifacts).')
         go.addWidget(self.spin_max_h, 1, 1)
 
-        go.addWidget(QLabel('Downsample (1 = resolucao original):'), 2, 0)
+        go.addWidget(QLabel('Downsample (1 = resolucao original / original resolution):'), 2, 0)
         self.spin_ds = QSpinBox()
         self.spin_ds.setRange(1, 8); self.spin_ds.setValue(1)
         go.addWidget(self.spin_ds, 2, 1)
@@ -1090,24 +1090,24 @@ class PlantHeightDialog(QDialog):
             layers = _raster_layers()
             if not layers:
                 raise RuntimeError(
-                    'Nenhuma camada raster carregada / No raster layers loaded.')
+                    'Nenhuma camada raster carregada / No raster layer loaded.')
 
             out = self.edit_output.text().strip()
-            if not out: QMessageBox.warning(self, 'RTH', 'Defina o arquivo de saida.'); return
+            if not out: QMessageBox.warning(self, 'RTH', 'Defina o arquivo de saida. / Define the output file.'); return
             if not out.lower().endswith('.tif'): out += '.tif'
 
             idx_dsm = self.combo_dsm.currentIndex()
             idx_dtm = self.combo_dtm.currentIndex()
             if idx_dsm < 0 or idx_dsm >= len(layers):
-                raise RuntimeError('Selecione uma camada DSM valida.')
+                raise RuntimeError('Selecione uma camada DSM valida. / Select a valid DSM layer.')
             if idx_dtm < 0 or idx_dtm >= len(layers):
-                raise RuntimeError('Selecione uma camada DTM valida.')
+                raise RuntimeError('Selecione uma camada DTM valida. / Select a valid DTM layer.')
 
             dsm_src = layers[idx_dsm][1]
             dtm_src = layers[idx_dtm][1]
             ds_val  = self.spin_ds.value()
 
-            prog = _progress(self, 'Lendo DSM...')
+            prog = _progress(self, 'Lendo DSM... / Reading DSM...')
             prog.show(); QApplication.processEvents()
 
             ds_dsm = _open_raster(dsm_src)
@@ -1116,7 +1116,7 @@ class PlantHeightDialog(QDialog):
             proj = ds_dsm.GetProjection()
             ds_dsm = None
 
-            prog.setLabelText('Lendo DTM...')
+            prog.setLabelText('Lendo DTM... / Reading DTM...')
             QApplication.processEvents()
 
             ds_dtm = _open_raster(dtm_src)
@@ -1129,7 +1129,7 @@ class PlantHeightDialog(QDialog):
                 dtm = zoom(dtm, zoom_r, order=1)
             ds_dtm = None
 
-            prog.setLabelText('Calculando CHM = DSM - DTM...')
+            prog.setLabelText('Calculando CHM = DSM - DTM... / Computing CHM = DSM - DTM...')
             QApplication.processEvents()
 
             chm = dsm - dtm
@@ -1140,14 +1140,14 @@ class PlantHeightDialog(QDialog):
             chm = np.where(chm < min_h, min_h, chm)
             chm = np.where(chm > max_h, np.nan, chm)
 
-            prog.setLabelText('Escrevendo CHM...')
+            prog.setLabelText('Escrevendo CHM... / Writing CHM...')
             QApplication.processEvents()
             _write_raster(out, chm, gt, proj)
 
             # ── Hillshade ──────────────────────────────────────────────────────
             hs_path = None
             if self.chk_hillshade.isChecked():
-                prog.setLabelText('Gerando hillshade...')
+                prog.setLabelText('Gerando hillshade... / Generating hillshade...')
                 QApplication.processEvents()
                 try:
                     import processing
@@ -1192,7 +1192,7 @@ class PlantHeightDialog(QDialog):
                 if hs_path and os.path.exists(hs_path):
                     _load_raster(hs_path, name + '_Hillshade', self.iface)
 
-            QMessageBox.information(self, 'RTH — CHM',
+            QMessageBox.information(self, 'RTH — CHM / Canopy Height Model',
                 'CHM gerado / CHM generated: {}{}'.format(out, stats_txt))
 
         except RuntimeError as e:
@@ -1200,7 +1200,7 @@ class PlantHeightDialog(QDialog):
             QMessageBox.critical(self, 'RTH', str(e))
         except Exception as e:
             if 'prog' in dir(): prog.close()
-            QMessageBox.critical(self, 'RTH', 'Erro inesperado:\n{}'.format(str(e)))
+            QMessageBox.critical(self, 'RTH', 'Erro inesperado / Unexpected error:\n{}'.format(str(e)))
 
 
 # ─── Shared internal helpers (must come before class definitions above) ───────
@@ -1234,7 +1234,7 @@ class PlantCountTool:
     def __init__(self, iface): self.iface = iface; self._dlg = None
     def run(self):
         if self._dlg is None or not self._dlg.isVisible():
-            self._dlg = PlantCountDialog(self.iface)
+            self._dlg = PlantCountDialog(self.iface, parent=self.iface.mainWindow())
         self._dlg.show(); self._dlg.raise_(); self._dlg.activateWindow()
 
 
@@ -1242,7 +1242,7 @@ class PlantingGapsTool:
     def __init__(self, iface): self.iface = iface; self._dlg = None
     def run(self):
         if self._dlg is None or not self._dlg.isVisible():
-            self._dlg = PlantingGapsDialog(self.iface)
+            self._dlg = PlantingGapsDialog(self.iface, parent=self.iface.mainWindow())
         self._dlg.show(); self._dlg.raise_(); self._dlg.activateWindow()
 
 
@@ -1250,7 +1250,7 @@ class WeedDetectionTool:
     def __init__(self, iface): self.iface = iface; self._dlg = None
     def run(self):
         if self._dlg is None or not self._dlg.isVisible():
-            self._dlg = WeedDetectionDialog(self.iface)
+            self._dlg = WeedDetectionDialog(self.iface, parent=self.iface.mainWindow())
         self._dlg.show(); self._dlg.raise_(); self._dlg.activateWindow()
 
 
@@ -1258,5 +1258,5 @@ class PlantHeightTool:
     def __init__(self, iface): self.iface = iface; self._dlg = None
     def run(self):
         if self._dlg is None or not self._dlg.isVisible():
-            self._dlg = PlantHeightDialog(self.iface)
+            self._dlg = PlantHeightDialog(self.iface, parent=self.iface.mainWindow())
         self._dlg.show(); self._dlg.raise_(); self._dlg.activateWindow()

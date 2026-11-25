@@ -128,13 +128,13 @@ class ProdesDownloadTool:
 
     def _load_wms(self, layers_info):
         total = len(layers_info)
-        self._dlg.set_busy(True, 'Carregando...')
+        self._dlg.set_busy(True, 'Carregando... / Loading...')
         self._dlg.set_progress('', value=0, maximum=total)
         loaded = 0
 
         for i, info in enumerate(layers_info):
             self._dlg.set_progress(
-                self.tr(u'Carregando {0}...').format(info['display']),
+                self.tr(u'Carregando {0}... / Loading {0}...').format(info['display']),
                 value=i, maximum=total
             )
             uri   = self._build_wms_uri(info['workspace'], info['layer'], info['ano'], info.get('crs', 4674))
@@ -146,7 +146,7 @@ class ProdesDownloadTool:
                 loaded += 1
             else:
                 self._dlg.set_progress(
-                    self.tr(u'Erro ao carregar {0} — verifique conexão').format(info['display']),
+                    self.tr(u'Erro ao carregar {0} — verifique conexão / Error loading {0} — check connection').format(info['display']),
                     value=i + 1, error=True
                 )
 
@@ -217,13 +217,13 @@ class ProdesDownloadTool:
         os.makedirs(out_dir, exist_ok=True)
 
         total = len(layers_info)
-        self._dlg.set_busy(True, 'Baixando...')
+        self._dlg.set_busy(True, 'Baixando... / Downloading...')
         self._dlg.set_progress('', value=0, maximum=total)
         saved = 0
 
         for i, info in enumerate(layers_info):
             self._dlg.set_progress(
-                self.tr(u'Baixando {0}...').format(info['display']),
+                self.tr(u'Baixando {0}... / Downloading {0}...').format(info['display']),
                 value=i, maximum=total
             )
 
@@ -232,7 +232,7 @@ class ProdesDownloadTool:
 
             if not layer.isValid():
                 self._dlg.set_progress(
-                    self.tr(u'Erro ao acessar WFS: {0}').format(info['display']),
+                    self.tr(u'Erro ao acessar WFS: {0} / WFS access error: {0}').format(info['display']),
                     value=i + 1, error=True
                 )
                 continue
@@ -248,7 +248,7 @@ class ProdesDownloadTool:
                 collapse_layer(saved_layer)
             else:
                 self._dlg.set_progress(
-                    self.tr(u'Erro ao salvar {0}: {1}').format(info['display'], err),
+                    self.tr(u'Erro ao salvar {0}: {1} / Error saving {0}: {1}').format(info['display'], err),
                     value=i + 1, error=True
                 )
 

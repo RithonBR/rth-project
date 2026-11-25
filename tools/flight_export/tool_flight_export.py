@@ -716,25 +716,23 @@ class FlightExportDialog(QDialog):
             else:
                 out_path = path  # All layers go into the same GPKG
 
-            err, msg = QgsVectorFileWriter.writeAsVectorFormat(
-                layer, out_path, 'UTF-8', self._WGS84, driver)
-
-            # For GPKG after the first layer, try to append with CreateOrOverwriteLayer
+            opts = QgsVectorFileWriter.SaveVectorOptions()
+            opts.driverName   = driver
+            opts.fileEncoding = 'UTF-8'
+            opts.ct           = QgsCoordinateTransform(layer.crs(), self._WGS84, QgsProject.instance())
             if driver == 'GPKG' and layer_idx > 0:
-                try:
-                    options = QgsVectorFileWriter.SaveVectorOptions()
-                    options.driverName = 'GPKG'
-                    options.fileEncoding = 'UTF-8'
-                    options.layerName = name
-                    options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
-                    options.ct = QgsCoordinateTransform(layer.crs(), self._WGS84, QgsProject.instance())
-                    result = QgsVectorFileWriter.writeAsVectorFormatV2(
-                        layer, out_path,
-                        QgsProject.instance().transformContext(), options)
-                    err = result[0]
-                    msg = result[1] if len(result) > 1 else ''
-                except AttributeError:
-                    pass  # Older QGIS — first layer already written above
+                opts.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+                opts.layerName = name
+            try:
+                result, *rest = QgsVectorFileWriter.writeAsVectorFormatV3(
+                    layer, out_path, QgsProject.instance().transformContext(), opts)
+                err = result
+                msg = rest[0] if rest else ''
+            except AttributeError:
+                res = QgsVectorFileWriter.writeAsVectorFormatV2(
+                    layer, out_path, QgsProject.instance().transformContext(), opts)
+                err = res[0]
+                msg = res[1] if len(res) > 1 else ''
 
             if err not in (QgsVectorFileWriter.NoError, 0):
                 errors.append('{}: {}'.format(name, msg))

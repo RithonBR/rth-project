@@ -332,7 +332,7 @@ class PointGridTool:
         # ── 9. Exibe mensagem de sucesso / Show success message ──
         self.iface.messageBar().pushMessage(
             'Point Grid',
-            '{} pontos | {} polígono(s) | {} EPSG:{} | {}m'.format(
+            '{} pontos / points | {} polígono(s) / polygon(s) | {} EPSG:{} | {}m'.format(
                 len(points), len(geom_list), datum_name, utm_epsg, spacing),
             level=Qgis.MessageLevel.Info,
             duration=8)

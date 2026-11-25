@@ -163,7 +163,7 @@ class DroneDEMDialog(QDialog):
         gl_las.setSpacing(6)
         gl_las.setColumnStretch(1, 1)
 
-        gl_las.addWidget(QLabel('Arquivo LAS/LAZ:'), 0, 0)
+        gl_las.addWidget(QLabel('Arquivo LAS/LAZ / LAS/LAZ File:'), 0, 0)
         row_las = QHBoxLayout()
         row_las.setContentsMargins(0, 0, 0, 0)
         self.edit_las = QLineEdit()
@@ -316,7 +316,7 @@ class DroneDEMDialog(QDialog):
         self.edit_name.setPlaceholderText('DEM_Drone')
         gl_out.addWidget(self.edit_name, 1, 1)
 
-        self.chk_compress = QCheckBox('Compressao LZW / LZW Compression (recomendado)')
+        self.chk_compress = QCheckBox('Compressao LZW / LZW Compression (recomendado / recommended)')
         self.chk_compress.setChecked(True)
         self.chk_compress.setStyleSheet('font-size:10px;')
         gl_out.addWidget(self.chk_compress, 2, 0, 1, 2)
@@ -485,7 +485,7 @@ class DroneDEMDialog(QDialog):
             options = 'COMPRESS=LZW|' + options
 
         progress = QProgressDialog('Aguarde / Please wait...', None, 0, 0, self)
-        progress.setWindowTitle('RTH DEM/MDT')
+        progress.setWindowTitle('RTH DEM/MDT — Aguarde / Please Wait')
         progress.setWindowModality(Qt.WindowModal)
         progress.setMinimumDuration(0)
         progress.setValue(0)
@@ -544,7 +544,7 @@ class DroneDEMDialog(QDialog):
                 except Exception as e:
                     hillshade_path = None
                     self.iface.messageBar().pushMessage(
-                        'RTH DEM', 'Hillshade falhou: {}'.format(str(e)),
+                        'RTH DEM', 'Hillshade falhou: {} / Hillshade failed: {}'.format(str(e), str(e)),
                         level=Qgis.MessageLevel.Warning, duration=4)
 
             if self.chk_contours.isChecked():
@@ -569,7 +569,7 @@ class DroneDEMDialog(QDialog):
                 except Exception as e:
                     contour_path = None
                     self.iface.messageBar().pushMessage(
-                        'RTH DEM', 'Curvas de nivel falharam: {}'.format(str(e)),
+                        'RTH DEM', 'Curvas de nível falharam: {} / Contour lines failed: {}'.format(str(e), str(e)),
                         level=Qgis.MessageLevel.Warning, duration=4)
 
             progress.close()
@@ -747,7 +747,7 @@ class DroneDEMTool:
 
     def run(self):
         if self._dialog is None or not self._dialog.isVisible():
-            self._dialog = DroneDEMDialog(self.iface)
+            self._dialog = DroneDEMDialog(self.iface, parent=self.iface.mainWindow())
         self._dialog.show()
         self._dialog.raise_()
         self._dialog.activateWindow()

@@ -55,27 +55,27 @@ DRONE_PRESETS = [
     # ── DJI Profissional / Professional ───────────────────────────────────────
     ('DJI Phantom 4 RTK',
      13.2, 8.8, 8.8, 5472, 3648, 10.0,
-     '1" CMOS 20MP  •  RTK/PPK integrado  •  referencia para mapeamento de precisao'),
+     '1" CMOS 20MP  •  RTK/PPK integrado / integrated  •  referencia / reference para mapeamento de precisao / precision mapping'),
 
     ('DJI Phantom 4 Pro V2',
      13.2, 8.8, 8.8, 5472, 3648, 12.0,
-     '1" CMOS 20MP  •  otimo custo-beneficio para mapeamento'),
+     '1" CMOS 20MP  •  otimo custo-beneficio / great cost-benefit para mapeamento / for mapping'),
 
     ('DJI Mavic 3E Enterprise',
      17.3, 13.0, 12.3, 5280, 3956, 15.0,
-     '4/3" CMOS 20MP  •  RTK integrado opcional  •  melhor relacao pegada/GSD'),
+     '4/3" CMOS 20MP  •  RTK integrado / optional integrated RTK  •  melhor relacao / best footprint-to-GSD ratio'),
 
     ('DJI Mavic 3M Multispectral',
      17.3, 13.0, 12.3, 5280, 3956, 15.0,
-     '4/3" CMOS 20MP  +  4 bandas multiespectrais (G/R/RE/NIR)  •  agricultura de precisao'),
+     '4/3" CMOS 20MP  +  4 bandas multiespectrais / multispectral bands (G/R/RE/NIR)  •  agricultura de precisao / precision agriculture'),
 
     ('DJI Matrice 350 RTK + P1 35mm',
      35.9, 24.0, 35.0, 8192, 5460, 15.0,
-     'Full frame 45MP  •  industrial  •  cobertura massiva em menos voos'),
+     'Full frame 45MP  •  industrial  •  cobertura massiva / massive coverage em menos voos / in fewer flights'),
 
     ('DJI Matrice 300 RTK + P1 35mm',
      35.9, 24.0, 35.0, 8192, 5460, 15.0,
-     'Full frame 45MP  •  industrial  •  RTK + PPK'),
+     'Full frame 45MP  •  industrial  •  RTK + PPK / surveying grade'),
 
     ('DJI Matrice 350 RTK + L2 (LiDAR)',
      None, None, None, None, None, 15.0,
@@ -84,34 +84,34 @@ DRONE_PRESETS = [
     # ── DJI Consumidor / Consumer ─────────────────────────────────────────────
     ('DJI Air 2S',
      13.2, 8.8, 8.38, 5472, 3648, 10.0,
-     '1" CMOS 20MP  •  prosumer  •  bom para areas menores'),
+     '1" CMOS 20MP  •  prosumer  •  bom para areas menores / good for smaller areas'),
 
     ('DJI Mavic 2 Pro',
      13.2, 8.8, 10.26, 5472, 3648, 10.0,
-     '1" CMOS 20MP Hasselblad  •  focal 28mm equiv  •  consumer/prosumer'),
+     '1" CMOS 20MP Hasselblad  •  focal 28mm equiv  •  consumer / prosumer'),
 
     ('DJI Mini 3 Pro',
      9.6, 7.2, 6.7, 4032, 3024, 8.0,
-     '1/1.3" CMOS  •  12MP modo mapeamento  •  limite legal 120m AGL'),
+     '1/1.3" CMOS  •  12MP modo mapeamento / mapping mode  •  limite legal / legal limit 120m AGL'),
 
     ('DJI Mini 4 Pro',
      9.6, 7.2, 6.7, 4032, 3024, 8.0,
-     '1/1.3" CMOS  •  12MP modo mapeamento  •  limite legal 120m AGL'),
+     '1/1.3" CMOS  •  12MP modo mapeamento / mapping mode  •  limite legal / legal limit 120m AGL'),
 
     # ── Parrot ────────────────────────────────────────────────────────────────
     ('Parrot ANAFI USA',
      6.2, 4.7, 4.14, 5344, 4016, 10.0,
-     '1/2.4" CMOS 21MP  •  boa portabilidade'),
+     '1/2.4" CMOS 21MP  •  boa portabilidade / good portability'),
 
     # ── Autel ─────────────────────────────────────────────────────────────────
     ('Autel EVO II Pro 6K',
      17.3, 13.0, 8.0, 6000, 4000, 12.0,
-     '4/3" CMOS 20MP  •  alternativa ao Mavic 3E'),
+     '4/3" CMOS 20MP  •  alternativa / alternative to Mavic 3E'),
 
     # ── Asa fixa VTOL / Fixed-wing VTOL ──────────────────────────────────────
     ('WingtraOne GEN II + Sony RX1R II',
      35.9, 24.0, 35.0, 7952, 5304, 16.0,
-     'VTOL asa fixa  •  Full frame 42MP Sony  •  ideal para grandes areas'),
+     'VTOL asa fixa / fixed-wing VTOL  •  Full frame 42MP Sony  •  ideal para grandes areas / ideal for large areas'),
 ]
 
 # Quick lookup dict
@@ -547,7 +547,7 @@ class DroneFlightPlannerDialog(QDialog):
         self.spin_speed = QDoubleSpinBox()
         self.spin_speed.setRange(1.0, 25.0); self.spin_speed.setValue(10.0)
         self.spin_speed.setSuffix(' m/s'); self.spin_speed.setDecimals(1); self.spin_speed.setSingleStep(1)
-        self.spin_speed.setToolTip('Velocidade tipica de mapeamento: 8-15 m/s')
+        self.spin_speed.setToolTip('Velocidade tipica de mapeamento / Typical mapping speed: 8-15 m/s')
         self.spin_speed.valueChanged.connect(self._update_preview)
         gfl.addWidget(self.spin_speed, 5, 1)
 

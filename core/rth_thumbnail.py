@@ -66,6 +66,14 @@ def _collect_candidate_urls(assets):
         if any(mime.startswith(r) for r in _RENDERABLE_MIME):
             _add(asset_data.get('href', ''))
 
+    # 4. Fallback GDAL: GeoTIFF de dados (SAR VV/VH, etc.) — GDAL usa overview do COG para ler rápido
+    # GDAL fallback: data GeoTIFFs (SAR VV/VH, etc.) — GDAL uses COG overview for fast read
+    for asset_data in assets.values():
+        roles = set(asset_data.get('roles') or [])
+        mime  = (asset_data.get('type') or '').lower()
+        if 'data' in roles and ('geotiff' in mime or mime.startswith('image/tiff')):
+            _add(asset_data.get('href', ''))
+
     return urls
 
 
@@ -164,11 +172,17 @@ class _ThumbWorker(QRunnable):
 
     Tenta cada URL candidata em ordem; emite done quando obtém imagem ou quando esgota as opções.
     Tries each candidate URL in order; emits done when image is obtained or options exhausted.
+
+    Recebe URLs brutas (não resolvidas) e chama resolve_href() nesta thread — isso evita que
+    a assinatura SAS do Planetary Computer bloqueie a thread principal do QGIS.
+    Receives raw (unresolved) URLs and calls resolve_href() in this thread — this prevents
+    Planetary Computer SAS signing from blocking the QGIS main thread.
     """
 
     def __init__(self, urls, w, h, cancel_flag):
         """
-        :param urls: lista de URLs já resolvidas (https://) / list of already resolved (https://) URLs
+        :param urls: lista de URLs brutas (podem ser s3://, https:// não assinadas, etc.) /
+                     list of raw URLs (may be s3://, unsigned https://, etc.)
         :param w: largura alvo em pixels / target width in pixels
         :param h: altura alvo em pixels / target height in pixels
         :param cancel_flag: lista [bool] compartilhada — [True] cancela o worker / shared [bool] — [True] cancels worker
@@ -184,9 +198,14 @@ class _ThumbWorker(QRunnable):
 
     def run(self):
         """Executa em thread de background / Executes in background thread."""
-        for url in self._urls:
+        for raw_url in self._urls:
             # Verifica cancelamento antes e depois de cada chamada bloqueante
             # Check cancellation before and after each blocking call
+            if self._cancel[0]:
+                return
+            # Resolve a URL nesta thread (assinatura SAS do PC, conversão s3://)
+            # Resolve URL in this thread (PC SAS signing, s3:// conversion)
+            url = resolve_href(raw_url)
             if self._cancel[0]:
                 return
             pixmap = _try_qpixmap(url, self._w, self._h)
@@ -216,9 +235,9 @@ def load_thumbnail_async(feature, label_widget, cancel_flag):
     :param cancel_flag: lista [bool] — setar [0]=True cancela workers pendentes / list [bool] — set [0]=True cancels pending workers
     """
     assets = feature.get('assets', {})
-    # Resolve todas as URLs antes de passar para o worker (s3:// → https://, PC → assinada)
-    # Resolve all URLs before passing to worker (s3:// → https://, PC → signed)
-    urls = [resolve_href(u) for u in _collect_candidate_urls(assets)]
+    # Coleta URLs brutas — a resolução (s3://, assinatura PC) ocorre dentro do worker
+    # Collect raw URLs — resolution (s3://, PC signing) happens inside the worker
+    urls = _collect_candidate_urls(assets)
 
     if not urls:
         try:

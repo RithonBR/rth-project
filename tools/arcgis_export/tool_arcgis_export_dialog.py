@@ -49,7 +49,9 @@ class ArcGISExportDialog(QDialog):
 
         lbl_sub = QLabel(
             self.tr(u'Exporta camadas vetoriais para File Geodatabase (.gdb)  ·  '
-                    u'Rasters como GeoTIFF  ·  Nomes sanitizados para ArcGIS')
+                    u'Rasters como GeoTIFF  ·  Nomes sanitizados para ArcGIS / '
+                    u'Exports vector layers to File Geodatabase (.gdb)  ·  '
+                    u'Rasters as GeoTIFF  ·  Names sanitized for ArcGIS')
         )
         lbl_sub.setAlignment(Qt.AlignCenter)
         lbl_sub.setStyleSheet('color:#666; font-size:10px;')
@@ -74,13 +76,13 @@ class ArcGISExportDialog(QDialog):
         dir_row.addWidget(btn_browse)
         layout.addLayout(dir_row)
 
-        lbl_name = QLabel(self.tr(u'Nome da GDB / GDB Name  (opcional — deixe em branco para usar o nome do projeto)'))
+        lbl_name = QLabel(self.tr(u'Nome da GDB / GDB Name  (opcional / optional — deixe em branco para usar o nome do projeto / leave blank to use the project name)'))
         lbl_name.setStyleSheet('font-size:10px; color:#555;')
         layout.addWidget(lbl_name)
 
         self.edit_gdb_name = QLineEdit()
         self.edit_gdb_name.setPlaceholderText(
-            self.tr(u'Ex: Fazenda_Santa_Rosa  (sem espaços nem acentos)'))
+            self.tr(u'Ex: Fazenda_Santa_Rosa  (sem espaços nem acentos / no spaces or accents)'))
         layout.addWidget(self.edit_gdb_name)
 
         self._sep(layout)

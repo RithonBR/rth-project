@@ -211,5 +211,3 @@ def run_connectivity():
 
 if __name__ == '__main__':
     run_connectivity()
-else:
-    run_connectivity()

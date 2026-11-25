@@ -14,14 +14,28 @@ __copyright__ = 'Copyright 2026, Rithon'
 
 import unittest
 
-from qgis.PyQt.QtGui import QDialogButtonBox, QDialog
+_QGIS_AVAILABLE = False
+try:
+    from qgis.PyQt.QtWidgets import QDialogButtonBox, QDialog
+    try:
+        from .utilities import get_qgis_app
+    except (ImportError, SystemError):
+        from utilities import get_qgis_app
+    import importlib.util as _ilu, os as _os
+    _spec = _ilu.spec_from_file_location(
+        'RTH_PROJECT_dialog',
+        _os.path.join(_os.path.dirname(_os.path.dirname(__file__)), 'RTH PROJECT_dialog.py')
+    )
+    _mod = _ilu.module_from_spec(_spec)
+    _spec.loader.exec_module(_mod)
+    rthprojectDialog = _mod.rthprojectDialog
+    QGIS_APP = get_qgis_app()
+    _QGIS_AVAILABLE = QGIS_APP is not None and QGIS_APP[0] is not None
+except Exception:
+    pass
 
-from RTH PROJECT_dialog import rthprojectDialog
 
-from utilities import get_qgis_app
-QGIS_APP = get_qgis_app()
-
-
+@unittest.skipUnless(_QGIS_AVAILABLE, 'QGIS runtime not available')
 class rthprojectDialogTest(unittest.TestCase):
     """Test dialog works."""
 

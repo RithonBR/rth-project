@@ -157,9 +157,9 @@ class DroneAutoMosaicDialog(QDialog):
             self.combo_dtype.addItem(label, code)
         gl_opt.addWidget(self.combo_dtype, 0, 1)
 
-        gl_opt.addWidget(QLabel('Valor no-data (vazio = auto):'), 1, 0)
+        gl_opt.addWidget(QLabel('Valor no-data (vazio / empty = auto):'), 1, 0)
         self.edit_nodata = QLineEdit()
-        self.edit_nodata.setPlaceholderText('Ex: 0  ou  -9999  (deixe vazio = automatico)')
+        self.edit_nodata.setPlaceholderText('Ex: 0  ou  -9999  (deixe vazio / leave empty = automatico / automatic)')
         gl_opt.addWidget(self.edit_nodata, 1, 1)
 
         self.chk_compress = QCheckBox('Compressao LZW / LZW Compression (recomendado / recommended)')
@@ -334,7 +334,7 @@ class DroneAutoMosaicDialog(QDialog):
         progress = QProgressDialog(
             'Gerando mosaico, aguarde... / Generating mosaic, please wait...',
             None, 0, 0, self)
-        progress.setWindowTitle('RTH Mosaico')
+        progress.setWindowTitle('RTH Mosaico / Drone Mosaic')
         progress.setWindowModality(Qt.WindowModal)
         progress.setMinimumDuration(0)
         progress.setValue(0)
@@ -385,7 +385,7 @@ class DroneAutoMosaicTool:
 
     def run(self):
         if self._dialog is None or not self._dialog.isVisible():
-            self._dialog = DroneAutoMosaicDialog(self.iface)
+            self._dialog = DroneAutoMosaicDialog(self.iface, parent=self.iface.mainWindow())
         self._dialog.show()
         self._dialog.raise_()
         self._dialog.activateWindow()

@@ -80,7 +80,7 @@ def _quality_label(score):
 
 
 def _parallelism_quality(std_deg):
-    if std_deg < 1.0:  return 'Excelente', '#2e7d32'
+    if std_deg < 1.0:  return 'Excelente / Excellent', '#2e7d32'
     if std_deg < 3.0:  return 'Bom / Good', '#558b2f'
     if std_deg < 5.0:  return 'Regular / Fair', '#f57c00'
     return 'Irregular / Poor', '#c62828'
@@ -307,7 +307,7 @@ class LineResultsDialog(QDialog):
         self._iface   = iface
         self._layer_name = layer_name
 
-        self.setWindowTitle('RTH Resultados — {}'.format(layer_name))
+        self.setWindowTitle('RTH Resultados — {} / Results — {}'.format(layer_name, layer_name))
         self.setWindowFlags(Qt.Window | Qt.WindowMinimizeButtonHint |
                             Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
         self.setMinimumWidth(460)
@@ -599,7 +599,7 @@ class LineComparisonResultsDialog(QDialog):
         self._iface   = iface
 
         names = [r['_name'] for r in results if r]
-        self.setWindowTitle('RTH Comparacao — Estrategias {}'.format(', '.join(names)))
+        self.setWindowTitle('RTH Comparação — Estratégias {} / Strategy Comparison {}'.format(', '.join(names), ', '.join(names)))
         self.setWindowFlags(Qt.Window | Qt.WindowMinimizeButtonHint |
                             Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
         self.setMinimumWidth(700)
@@ -672,7 +672,7 @@ class LineComparisonResultsDialog(QDialog):
                 ('CURVAS DE RETORNO / TURN ARCS',     None,              None,  None),
                 ('Qtd curvas / Num arcs',             'turns_n',         False, str),
                 ('Dist. curvas / Turns length (m)',   'turns_length_m',  False, lambda v: '{:,.0f}'.format(v).replace(',', '.')),
-                ('Dist. total percorrida (m)',         'real_total_dist_m', False, lambda v: '{:,.0f}'.format(v).replace(',', '.')),
+                ('Dist. total percorrida / Total dist. travelled (m)',         'real_total_dist_m', False, lambda v: '{:,.0f}'.format(v).replace(',', '.')),
                 ('Efic. operacional / Op. efficiency','op_efficiency_pct', True, _fmt_pct),
             ]
 
@@ -704,7 +704,7 @@ class LineComparisonResultsDialog(QDialog):
         if any_turns:
             rows.append(('Tempo curvas / Turns time', 'turns_time_h',    False, _fmt_time))
         rows.append(('Tempo total / Total time',      'total_time_h',    False, _fmt_time))
-        rows.append(('* Tempo = distancia / velocidade (nao depende do no. de linhas)',
+        rows.append(('* Tempo / Time = distancia / velocidade (nao depende do no. de linhas / independent of line count)',
                      None, None, None))
 
         if any_cost:
@@ -805,7 +805,7 @@ class LineAnalysisDialog(QDialog):
         self._populate_layers()
 
     def _build_ui(self):
-        self.setWindowTitle('RTH — Analise de Linhas de Plantio')
+        self.setWindowTitle('RTH — Análise de Linhas de Plantio / Planting Line Analysis')
         self.setWindowFlags(Qt.Window | Qt.WindowTitleHint |
                             Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint)
         self.setMinimumWidth(490)
@@ -814,7 +814,7 @@ class LineAnalysisDialog(QDialog):
         root.setSpacing(8)
         root.setContentsMargins(12, 12, 12, 12)
 
-        lbl_title = QLabel('Analise de Linhas de Plantio/Colheita')
+        lbl_title = QLabel('Analise de Linhas de Plantio/Colheita / Planting/Harvest Line Analysis')
         lbl_title.setAlignment(Qt.AlignCenter)
         lbl_title.setStyleSheet('font-size:13px; font-weight:bold;')
         root.addWidget(lbl_title)
@@ -1032,7 +1032,7 @@ class LineComparisonDialog(QDialog):
         self._populate_layers()
 
     def _build_ui(self):
-        self.setWindowTitle('RTH — Comparacao de Estrategias de Plantio')
+        self.setWindowTitle('RTH — Comparação de Estratégias de Plantio / Planting Strategy Comparison')
         self.setWindowFlags(Qt.Window | Qt.WindowTitleHint |
                             Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint)
         self.setMinimumWidth(560)

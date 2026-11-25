@@ -9,11 +9,13 @@ rth_dialog_catalog — RTH dialog mixin for catalog, collection and band managem
 """
 
 # Módulo Qt para processar eventos da interface / Qt module to process UI events
-from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QApplication, QDialog
 
 # Importa catálogo e funções de composição / Import catalog and composition functions
 from .rth_catalog import (
-    SATELLITE_COLLECTIONS, get_compositions, get_band_tuple, get_rgb_from_eo_bands
+    SATELLITE_COLLECTIONS, get_compositions, get_band_tuple, get_rgb_from_eo_bands,
+    get_band_catalog, get_custom_compositions, save_custom_composition, delete_custom_composition,
+    NO_CLOUD_SATELLITES, needs_eo_bands,
 )
 # Importa busca de catálogo e detalhes de coleção da API / Import catalog fetch and collection detail from API
 from .rth_stac_api import fetch_stac_catalog, fetch_collection_detail
@@ -30,7 +32,13 @@ class CatalogMixin:
     # 's2_l1c'     → Sentinel-2 Level-1C (existe apenas como bundle no BDC) / only exists as bundle in BDC
     # 'tsirf', 'bimonthly', 'yearly' → produtos mosaico TSIRF / TSIRF mosaic products
     # 'irs'        → sensor IRS monoespectral / IRS monospectral sensor
-    _EXCLUDED_KEYWORDS = ('tsirf', 'bimonthly', 'yearly', 'irs', 'bundle', 's2_l1c')
+    # 'rtc-1'      → sentinel-1-rtc-1 BDC (cobertura incompleta, <2% do Brasil em 2024) / BDC RTC-1 (sparse, <2% Brazil coverage in 2024)
+    # 'mapaquali'  → coleção MAPAQUALI Sentinel-2 removida a pedido (ID usa abreviação 'mq') /
+    #               MAPAQUALI Sentinel-2 collection removed on request (ID uses abbreviation 'mq')
+    # 'mq_rrs'    → s2_msi_mq_rrs-1 (MAPAQUALI Aquatic Remote Sensing Reflectance)
+    # 'mq_wqp'    → s2_msi_mq_wqp-1 (MAPAQUALI Water Quality Parameters)
+    _EXCLUDED_KEYWORDS = ('tsirf', 'bimonthly', 'yearly', 'irs', 'bundle', 's2_l1c', 'rtc-1',
+                          'mapaquali', 'mq_rrs', 'mq_wqp')
 
     # Sobrescreve títulos vagos que a API BDC retorna com nomes mais descritivos
     # Override vague BDC API titles with more descriptive names
@@ -159,19 +167,51 @@ class CatalogMixin:
     def _on_satellite_changed(self, _idx):
         """Atualiza coleções ao mudar o satélite / Update collections when satellite changes."""
         self._update_collections_for_current_sat()
+        # Oculta o slider de nuvens para satélites SAR/S3 que não têm eo:cloud_cover
+        # Hide cloud slider for SAR/S3 satellites that have no eo:cloud_cover
+        sat        = self.combo_satelite.currentText()
+        has_cloud  = sat not in NO_CLOUD_SATELLITES
+        for attr in ('lbl_nuvens', 'slider_nuvem', 'lbl_nuvem_val'):
+            w = getattr(self, attr, None)
+            if w:
+                w.setVisible(has_cloud)
+        if not has_cloud:
+            # Força 100 para evitar filtro de nuvens indevido na busca / Force 100 to avoid spurious cloud filter on search
+            slider = getattr(self, 'slider_nuvem', None)
+            if slider:
+                slider.setValue(100)
 
     def _on_colecao_changed(self, _idx):
         """Atualiza composições disponíveis ao mudar a coleção / Update available compositions when collection changes."""
         collection_id = self.combo_colecao.currentData()
         if not collection_id:
             return
-        # Busca metadados da coleção para resolução de bandas / Fetch collection metadata for band resolution
-        eo_bands = self._get_eo_bands(collection_id)
+        # Pula a busca de eo:bands para coleções SAR/PAN/single-band — composição é fixa,
+        # e a chamada de rede bloquearia a thread principal sem nenhum benefício.
+        # Skip eo:bands fetch for SAR/PAN/single-band — composition is fixed,
+        # and the network call would block the main thread with no benefit.
+        eo_bands = self._get_eo_bands(collection_id) if needs_eo_bands(collection_id) else []
         self.combo_composicao.blockSignals(True)
         self.combo_composicao.clear()
         for label, key in get_compositions(collection_id, eo_bands):
             self.combo_composicao.addItem(label, key)
+
+        # Adiciona "Personalizado" se a coleção tem catálogo de bandas (≥2 bandas) e não é SAR/PAN/single-band
+        # Add "Personalizado" if the collection has a band catalog (≥2 bands) and is not SAR/PAN/single-band
+        if len(get_band_catalog(collection_id)) >= 2 and needs_eo_bands(collection_id):
+            self.combo_composicao.addItem('Personalizado / Custom', 'CUSTOM')
+
+            # Composições salvas com separador visual / Saved compositions with visual separator
+            saved = get_custom_compositions(collection_id)
+            if saved:
+                self.combo_composicao.insertSeparator(self.combo_composicao.count())
+                for comp in saved:
+                    name = comp.get('name', '?')
+                    self.combo_composicao.addItem('★  ' + name, 'CUSTOM:' + name)
+
         self.combo_composicao.blockSignals(False)
+        # Atualiza estado do botão de configurar / Update configure button state
+        self._on_composicao_index_changed(self.combo_composicao.currentIndex())
 
     def _get_eo_bands(self, collection_id):
         """Retorna a lista eo:bands da coleção com cache / Return eo:bands list for collection with cache.
@@ -192,22 +232,96 @@ class CatalogMixin:
         return detail.get('summaries', {}).get('eo:bands', [])
 
     def _get_band_tuple(self, collection_id, composition_key):
-        """Resolve a tupla de bandas via eo:bands da API ou catálogo estático / Resolve band tuple via API eo:bands or static catalog.
+        """Resolve a tupla de bandas via eo:bands da API, composição personalizada ou catálogo estático /
+        Resolve band tuple via API eo:bands, custom composition, or static catalog.
 
         Prioridade / Priority:
-        1. Metadados da coleção via common_name (mais preciso) / Collection metadata via common_name (more accurate)
-        2. Catálogo estático como fallback / Static catalog as fallback
+        1. Composição personalizada ativa (CUSTOM ou CUSTOM:<nome>) / Active custom composition
+        2. Metadados da coleção via common_name / Collection metadata via common_name
+        3. Catálogo estático como fallback / Static catalog as fallback
 
         :returns: tuple (ch1, ch2, ch3) ou None / tuple or None
         :rtype: tuple[str, str, str] | None
         """
-        eo_bands = self._get_eo_bands(collection_id)
+        # Composição personalizada sem nome — usa o estado em memória / Unsaved custom — use in-memory state
+        if composition_key == 'CUSTOM':
+            cb = getattr(self, '_custom_bands', None) or {}
+            r, g, b = cb.get('r'), cb.get('g'), cb.get('b')
+            if r and g and b:
+                return (r, g, b)
+            return None
+
+        # Composição personalizada salva — carrega do QgsSettings / Saved custom — load from QgsSettings
+        if isinstance(composition_key, str) and composition_key.startswith('CUSTOM:'):
+            name = composition_key[7:]
+            for comp in get_custom_compositions(collection_id):
+                if comp.get('name') == name:
+                    r, g, b = comp.get('r'), comp.get('g'), comp.get('b')
+                    if r and g and b:
+                        return (r, g, b)
+            return None
+
+        # Padrão: API → catálogo estático / Default: API → static catalog
+        eo_bands = self._get_eo_bands(collection_id) if needs_eo_bands(collection_id) else []
         if eo_bands:
             result = get_rgb_from_eo_bands(eo_bands, composition_key)
             if result:
                 return result
-        # Fallback: catálogo estático / Fallback: static catalog
         return get_band_tuple(collection_id, composition_key)
+
+    def _on_composicao_index_changed(self, _idx):
+        """Habilita o botão ⚙ apenas para composições personalizadas / Enable ⚙ button only for custom compositions."""
+        if not hasattr(self, 'btn_cfg_composicao'):
+            return
+        key = self.combo_composicao.currentData() or ''
+        is_custom = (key == 'CUSTOM' or (isinstance(key, str) and key.startswith('CUSTOM:')))
+        self.btn_cfg_composicao.setEnabled(is_custom)
+
+    def _on_cfg_composicao_clicked(self):
+        """Abre o dialog de composição personalizada para criar ou editar / Open custom composition dialog to create or edit."""
+        collection_id = self.combo_colecao.currentData()
+        if not collection_id:
+            return
+
+        key       = self.combo_composicao.currentData() or ''
+        edit_name = key[7:] if key.startswith('CUSTOM:') else None
+
+        from .rth_custom_composition_dialog import CustomCompositionDialog
+        dlg = CustomCompositionDialog(collection_id, edit_name, self)
+        if dlg.exec_() != QDialog.Accepted:
+            return
+
+        result = dlg.get_result()
+
+        if result.get('deleted'):
+            # Remove do QgsSettings e recarrega o combo / Remove from QgsSettings and reload combo
+            delete_custom_composition(collection_id, edit_name)
+            self._on_colecao_changed(0)
+            # Seleciona a primeira opção / Select first option
+            self.combo_composicao.setCurrentIndex(0)
+            return
+
+        # Armazena no estado em memória (CUSTOM sem nome usa isso) / Store in memory state
+        self._custom_bands = result
+
+        if result.get('saved') and result.get('name'):
+            # Salva e recarrega o combo / Save and reload combo
+            save_custom_composition(
+                collection_id, result['name'],
+                result['r'], result['g'], result['b'],
+                result.get('extra', []))
+            self._on_colecao_changed(0)
+            # Seleciona a composição salva recém-criada / Select the newly saved composition
+            new_key = 'CUSTOM:' + result['name']
+            idx = self.combo_composicao.findData(new_key)
+            if idx >= 0:
+                self.combo_composicao.setCurrentIndex(idx)
+        else:
+            # Aplicar sem salvar — garante que "Personalizado" está selecionado /
+            # Apply without saving — ensure "Personalizado" is selected
+            idx = self.combo_composicao.findData('CUSTOM')
+            if idx >= 0:
+                self.combo_composicao.setCurrentIndex(idx)
 
     def _on_slider_changed(self, value):
         """Atualiza o rótulo percentual do slider de nuvens / Update cloud slider percent label."""

@@ -121,7 +121,7 @@ class CarreadorDialog(QDialog):
     # ── UI ────────────────────────────────────────────────────────────────────
 
     def _build_ui(self):
-        self.setWindowTitle('RTH Criacao de Carreadores')
+        self.setWindowTitle('RTH Criação de Carreadores / Headland Creation')
         self.setWindowFlags(
             Qt.Window | Qt.WindowTitleHint |
             Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint
@@ -133,7 +133,7 @@ class CarreadorDialog(QDialog):
         root.setContentsMargins(12, 12, 12, 12)
         self._root = root
 
-        lbl_title = QLabel('Criacao de Carreadores')
+        lbl_title = QLabel('Criação de Carreadores / Headland Creation')
         lbl_title.setAlignment(Qt.AlignCenter)
         lbl_title.setStyleSheet('font-size:13px; font-weight:bold;')
         root.addWidget(lbl_title)
@@ -217,8 +217,8 @@ class CarreadorDialog(QDialog):
 
         # ── Status ────────────────────────────────────────────────────────────
         self.lbl_status = QLabel(
-            '1. Selecione a feicao na camada\n'
-            '2. Clique em Iniciar Desenho')
+            '1. Selecione a feicao na camada / Select the feature in the layer\n'
+            '2. Clique em Iniciar Desenho / Click Start Drawing')
         self.lbl_status.setAlignment(Qt.AlignCenter)
         self.lbl_status.setStyleSheet('font-size:10px; color:#444;')
         self.lbl_status.setWordWrap(True)
@@ -489,10 +489,10 @@ class CarreadorDialog(QDialog):
             return g
 
         _add_memory_layer(
-            'Carreador - {}'.format(base_name),
+            'Carreador / Headland - {}'.format(base_name),
             _merge(strips), layer_crs, '#BF8B2E')
         _add_memory_layer(
-            'Campo sem Carreador - {}'.format(base_name),
+            'Campo sem Carreador / Field without Headland - {}'.format(base_name),
             _merge(fields_list), layer_crs, '#4CAF50')
 
         n = len(fields_list)
