@@ -16,13 +16,14 @@ import os
 from qgis.PyQt import uic
 # Módulos Qt para widgets / Qt modules for widgets
 from qgis.PyQt import QtWidgets
+from qgis.PyQt.QtWidgets import QPushButton, QLabel
 # Flags de janela / Window flags
 from qgis.PyQt.QtCore import Qt, QDate
 
 # Mixins com a lógica dividida por responsabilidade / Mixins with logic split by responsibility
-from rth_dialog_catalog import CatalogMixin   # satélites, coleções, bandas / satellites, collections, bands
-from rth_dialog_results import ResultsMixin   # busca STAC, cards de cenas / STAC search, scene cards
-from rth_dialog_actions import ActionsMixin   # virtualizar, baixar, UI / virtualize, download, UI
+from core.rth_dialog_catalog import CatalogMixin   # satélites, coleções, bandas / satellites, collections, bands
+from core.rth_dialog_results import ResultsMixin   # busca STAC, cards de cenas / STAC search, scene cards
+from core.rth_dialog_actions import ActionsMixin   # virtualizar, baixar, UI / virtualize, download, UI
 
 # Carrega o arquivo .ui / Load .ui file
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -60,6 +61,10 @@ class rthprojectDialog(CatalogMixin, ResultsMixin, ActionsMixin,
         self._collection_cache = {}
         # Catálogo dinâmico carregado da API / Dynamic catalog loaded from API
         self._api_catalog = None
+        # Paginação / Pagination state
+        self._current_page  = 1
+        self._total_matched = 0
+        self._search_params = None
         # Inicializa a UI / Initialize UI
         self._init_ui()
 
@@ -90,8 +95,14 @@ class rthprojectDialog(CatalogMixin, ResultsMixin, ActionsMixin,
         self.btn_puxar.setGeometry(870, 35, W - 878, 28)
 
         # ── Scroll area: cresce para preencher o espaço central / Scroll area grows to fill center ──
-        # Altura = janela menos topo(96) menos rodapé(136) / Height = window minus top(96) minus footer(136)
-        self.scroll_resultados.setGeometry(8, 96, W - 16, max(H - 232, 100))
+        # Altura = janela menos topo(96) menos rodapé(162) / Height = window minus top(96) minus footer(162)
+        self.scroll_resultados.setGeometry(8, 96, W - 16, max(H - 260, 100))
+
+        # Barra de paginação / Pagination bar
+        page_y = H - 160
+        self.btn_prev_page.setGeometry(8, page_y, 140, 26)
+        self.lbl_page_info.setGeometry(156, page_y, W - 312, 26)
+        self.btn_next_page.setGeometry(W - 148, page_y, 140, 26)
 
         # ── Faixa inferior ancorada ao rodapé / Bottom strip anchored to footer ──
         pasta_y = H - 128   # linha da pasta de saída / output folder row
@@ -104,10 +115,11 @@ class rthprojectDialog(CatalogMixin, ResultsMixin, ActionsMixin,
         self.edit_pasta.setGeometry(117, pasta_y, W - 205, 22)
         self.btn_pasta.setGeometry(W - 80, pasta_y, 72, 22)
 
-        # Botões Virtualizar e Baixar dividem a largura igualmente / Virtualize and Download split width evenly
-        btn_w = (W - 24) // 2
-        self.btn_virtualizar.setGeometry(8, btn_y, btn_w, 36)
-        self.btn_baixar.setGeometry(8 + btn_w + 8, btn_y, btn_w, 36)
+        # Três botões dividem a largura igualmente / Three buttons split width evenly
+        btn_w = (W - 32) // 3
+        self.btn_virtualizar.setGeometry(8,                  btn_y, btn_w, 36)
+        self.btn_desmarcar.setGeometry(  16 + btn_w,         btn_y, btn_w, 36)
+        self.btn_baixar.setGeometry(     24 + 2 * btn_w,     btn_y, btn_w, 36)
 
         # Progresso / Progress
         self.lbl_progresso.setGeometry(8, prog_y, W - 16, 18)
@@ -116,7 +128,7 @@ class rthprojectDialog(CatalogMixin, ResultsMixin, ActionsMixin,
     def _init_ui(self):
         """Configura widgets e conecta sinais / Set up widgets and connect signals."""
         # Importa catálogo estático para popular o combo inicial / Import static catalog to populate initial combo
-        from rth_catalog import SATELLITE_COLLECTIONS
+        from core.rth_catalog import SATELLITE_COLLECTIONS
         # Preenche combo de satélites com o catálogo estático / Fill satellite combo with static catalog
         self._populate_satellites(SATELLITE_COLLECTIONS)
         # Satélite muda → atualiza coleções / Satellite changes → update collections
@@ -139,3 +151,25 @@ class rthprojectDialog(CatalogMixin, ResultsMixin, ActionsMixin,
         self._on_satellite_changed(0)
         # Tenta carregar o catálogo dinâmico da API / Try to load dynamic catalog from API
         self._refresh_catalog_from_api()
+
+        # Botão desmarcar todas / Deselect all button
+        self.btn_desmarcar = QPushButton('✕  Desmarcar Todas / Deselect All', self)
+        self.btn_desmarcar.setEnabled(True)
+        self.btn_desmarcar.setToolTip('Desmarca todos os checkboxes e a seleção atual / Uncheck all checkboxes and clear current selection')
+        self.btn_desmarcar.clicked.connect(self._deselect_all)
+
+        # Botões de paginação / Pagination buttons
+        self.btn_prev_page = QPushButton('← Anterior / Prev', self)
+        self.btn_prev_page.setEnabled(False)
+        self.btn_prev_page.setVisible(False)
+        self.btn_prev_page.clicked.connect(self._on_prev_page)
+
+        self.lbl_page_info = QLabel('', self)
+        self.lbl_page_info.setAlignment(Qt.AlignCenter)
+        self.lbl_page_info.setStyleSheet('color: #555; font-size: 11px;')
+        self.lbl_page_info.setVisible(False)
+
+        self.btn_next_page = QPushButton('Próxima → / Next', self)
+        self.btn_next_page.setEnabled(False)
+        self.btn_next_page.setVisible(False)
+        self.btn_next_page.clicked.connect(self._on_next_page)

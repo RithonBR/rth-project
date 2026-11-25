@@ -1,0 +1,13 @@
+Coloque aqui os arquivos .qpt de templates de layout de impressao.
+Place .qpt print layout template files here.
+
+Exemplo / Example:
+  A4_paisagem.qpt
+  A3_retrato.qpt
+  Relatorio_campo.qpt
+
+Como criar / How to create:
+  1. Crie e configure o layout no QGIS (menu Projeto > Novo Layout de Impressao)  /  Create and configure the layout in QGIS (menu Project > New Print Layout)
+  2. No Layout Designer: Layout > Salvar como Template...  /  In Layout Designer: Layout > Save as Template...
+  3. Formato: .qpt  /  Format: .qpt
+  4. Salve nesta pasta  /  Save in this folder

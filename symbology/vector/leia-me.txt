@@ -1,0 +1,13 @@
+Coloque aqui os arquivos .qml de simbologia para camadas VETOR.
+Place .qml symbology files for VECTOR layers here.
+
+Exemplo / Example:
+  talhoes.qml
+  limites_propriedade.qml
+  pontos_amostragem.qml
+
+Como criar / How to create:
+  1. Estilize a camada vetorial no QGIS  /  Style the vector layer in QGIS
+  2. Propriedades da Camada > Estilo > Salvar Estilo...  /  Layer Properties > Style > Save Style...
+  3. Formato: QGIS Layer Style File (.qml)  /  Format: QGIS Layer Style File (.qml)
+  4. Salve nesta pasta  /  Save in this folder

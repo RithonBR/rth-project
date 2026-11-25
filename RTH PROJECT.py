@@ -16,15 +16,12 @@ as assistant, gathering tools used throughout the author's professional life.
 # it under the terms of the GNU General Public License v3
 """
 
-# Biblioteca padrão para caminhos de arquivo / Standard library for file paths
 import os
-# Biblioteca padrão para manipulação do caminho de módulos Python / Standard library for Python module path manipulation
 import sys
-# Importação dinâmica de módulos com nomes contendo espaços / Dynamic module import for filenames with spaces
 import importlib.util
 
-# Importações do Qt para configurações, tradução e aplicação / Qt imports for settings, translation and application
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, QUrl
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, QUrl, Qt
+from qgis.core import Qgis
 # Importações do Qt para ícones / Qt imports for icons
 from qgis.PyQt.QtGui import QIcon
 # Importação do Qt para ações da barra de ferramentas e abertura de URLs / Qt import for toolbar actions and URL opening
@@ -40,17 +37,40 @@ if _plugin_dir not in sys.path:
 
 # Importa as classes de cada ferramenta a partir de seus módulos dedicados
 # Import each tool class from its dedicated module
-from tool_lat_long_picker import LatLongPickerTool       # ferramenta Lat/Long / LatLong tool  # noqa: E402
-from tool_catch_json import CatchJsonTool               # ferramenta Catch JSON / Catch JSON tool  # noqa: E402
-from tool_send_to_google import SendToGoogleTool        # ferramenta Google Earth / Google Earth tool  # noqa: E402
-from tool_calc_area import CalcAreaTool                 # ferramenta Cálculo de Área / Area Calc tool  # noqa: E402
-from tool_dem_downloader import DEMDownloaderTool       # ferramenta DEM Downloader / DEM Downloader tool  # noqa: E402
-from tool_point_grid import PointGridTool               # ferramenta Grid de Pontos / Point Grid tool  # noqa: E402
-from tool_export_csv import ExportGridCSVTool           # ferramenta Export CSV / Export CSV tool  # noqa: E402
-from tool_import_csv import ImportCSVTool               # ferramenta Import CSV / Import CSV tool  # noqa: E402
-from tool_planting_lines import PlantingLinesTool       # ferramenta Linhas de Plantio/Colheita / Planting/Harvest Lines tool  # noqa: E402
-from tool_points_to_polygon import PointsToPolygonTool  # ferramenta Pontos de GPS para Polígono / GPS Points to Polygon tool  # noqa: E402
-from tool_layer_cycler import LayerCyclerTool           # ferramenta Alternar Camadas / Layer Cycler tool  # noqa: E402
+from tools.lat_long_picker.tool_lat_long_picker import LatLongPickerTool       # ferramenta Lat/Long / LatLong tool  # noqa: E402
+from tools.reverse_geocode.tool_reverse_geocode import ReverseGeocodeTool      # ferramenta geocodificação reversa / reverse geocode tool  # noqa: E402
+from tools.calc_perimeter.tool_calc_perimeter import CalcPerimeterTool         # ferramenta perímetro / perimeter tool  # noqa: E402
+from tools.catch_json.tool_catch_json import CatchJsonTool                     # ferramenta Catch JSON / Catch JSON tool  # noqa: E402
+from tools.send_to_google.tool_send_to_google import SendToGoogleTool          # ferramenta Google Earth / Google Earth tool  # noqa: E402
+from tools.calc_area.tool_calc_area import CalcAreaTool                        # ferramenta Cálculo de Área / Area Calc tool  # noqa: E402
+from tools.dem.tool_dem_downloader import DEMDownloaderTool                    # ferramenta DEM Downloader / DEM Downloader tool  # noqa: E402
+from tools.point_grid.tool_point_grid import PointGridTool                     # ferramenta Grid de Pontos / Point Grid tool  # noqa: E402
+from tools.export_csv.tool_export_csv import ExportGridCSVTool                 # ferramenta Export CSV / Export CSV tool  # noqa: E402
+from tools.import_csv.tool_import_csv import ImportCSVTool                     # ferramenta Import CSV / Import CSV tool  # noqa: E402
+from tools.planting_lines.tool_planting_lines import PlantingLinesTool         # ferramenta Linhas de Plantio/Colheita / Planting/Harvest Lines tool  # noqa: E402
+from tools.points_to_polygon.tool_points_to_polygon import PointsToPolygonTool # ferramenta Pontos de GPS para Polígono / GPS Points to Polygon tool  # noqa: E402
+from tools.layer_switcher.tool_layer_switcher import LayerSwitcherTool         # ferramenta Alternar Camadas / Layer Switcher tool  # noqa: E402
+from tools.rename_layer.tool_rename_layer import RenameLayerTool               # ferramenta Renomear Layer Rápido / Quick Layer Rename tool  # noqa: E402
+from tools.prodes.tool_prodes import ProdesDownloadTool                        # ferramenta PRODES Download / PRODES Download tool  # noqa: E402
+from tools.auto_save.tool_auto_save import AutoSaveTool                        # ferramenta Auto-Save / Auto-Save tool  # noqa: E402
+from tools.info.tool_info import InfoTool                                      # ferramenta Informações / Info tool  # noqa: E402
+from tools.measure_distance.tool_measure_distance import MeasureDistanceTool  # ferramenta Medir Distância / Measure Distance tool  # noqa: E402
+from tools.arcgis_export.tool_arcgis_export import ArcGISExportTool           # ferramenta Exportar para ArcGIS / Export to ArcGIS tool  # noqa: E402
+from tools.quick_style.tool_quick_style import QuickStyleTool                  # ferramenta Estilos/Layouts Rápidos / Quick Styles & Layouts tool  # noqa: E402
+from tools.monitor_export.tool_monitor_export import MonitorExportTool, MONITORS, make_brand_icon, make_tool_icon  # ferramenta Exportar Monitor Agrícola / Agricultural Monitor Export tool  # noqa: E402
+from tools.line_analysis.tool_line_analysis import LineAnalysisTool              # ferramenta Análise de Linhas / Line Analysis tool  # noqa: E402
+from tools.carreador.tool_carreador import CarreadorTool                         # ferramenta Criação de Carreadores / Headland Creation tool  # noqa: E402
+from tools.send_polygon_google.tool_send_polygon_google import SendPolygonToGoogleTool  # ferramenta Enviar Polígono Google Earth Pro / Send Polygon to Google Earth Pro  # noqa: E402
+from tools.polygon_reviewer.tool_polygon_reviewer import PolygonReviewerTool            # ferramenta Revisor de Polígonos / Polygon Reviewer tool  # noqa: E402
+from tools.drone_planner.tool_drone_planner import DronePlannerTool                     # ferramenta Planejador de Voo para Drones / Drone Flight Planner tool  # noqa: E402
+from tools.flight_export.tool_flight_export import FlightExportTool                     # ferramenta Exportar Plano de Voo / Flight Plan Export tool  # noqa: E402
+from tools.drone_analysis.tool_drone_analysis import DroneAnalysisTool                   # ferramenta Análise de Voo para Drones / Drone Flight Analysis tool  # noqa: E402
+from tools.drone_mosaic.tool_drone_mosaic import DroneAutoMosaicTool                     # ferramenta Mosaico Automático de Drone / Drone Auto Mosaic tool  # noqa: E402
+from tools.drone_dem.tool_drone_dem import DroneDEMTool                                  # ferramenta Geração de MDE/MDT de Drone / Drone DEM/DTM Generation tool  # noqa: E402
+from tools.drone_analytics.tool_drone_analytics import (                                  # ferramentas Análises para Drone / Drone Analytics tools  # noqa: E402
+    PlantCountTool, PlantingGapsTool, WeedDetectionTool, PlantHeightTool)                 # noqa: E402
+from tools.field_analysis.tool_field_analysis import FieldAnalysisTool                    # ferramenta Análise Rápida do Talhão / Quick Field Analysis tool  # noqa: E402
+from tools.brazil_geobase.tool_brazil_geobase import BrazilGeoBaseTool                    # ferramenta Brazil Public GeoBase / Base de Dados Pública do Brasil  # noqa: E402
 
 # Carrega dinamicamente o resources.py (nome de arquivo com espaço no diretório pai)
 # Dynamically load resources.py (filename with space in parent directory)
@@ -85,7 +105,9 @@ class rthproject:
         self.plugin_dir = _plugin_dir
 
         # Instancia cada ferramenta passando a interface QGIS / Instantiate each tool passing QGIS interface
-        self.tool_latlong = LatLongPickerTool(iface)        # Lat/Long Picker
+        self.tool_latlong         = LatLongPickerTool(iface)        # Lat/Long Picker
+        self.tool_reverse_geocode = ReverseGeocodeTool(iface)      # Geocodificação Reversa
+        self.tool_calc_perimeter  = CalcPerimeterTool(iface)       # Calc Perímetro
         self.tool_catch_json = CatchJsonTool(iface)         # Catch JSON
         self.tool_send_google = SendToGoogleTool(iface)     # Send to Google Earth Pro
         self.tool_calc_area = CalcAreaTool(iface)           # Calc Area (ha)
@@ -95,7 +117,30 @@ class rthproject:
         self.tool_import_csv = ImportCSVTool(iface)         # Import CSV
         self.tool_planting_lines = PlantingLinesTool(iface)    # Linhas de Plantio/Colheita / Planting/Harvest Lines
         self.tool_pts_to_poly = PointsToPolygonTool(iface)     # Pontos de GPS para Polígono / GPS Points to Polygon
-        self.tool_layer_cycler = LayerCyclerTool(iface)        # Alternar Camadas / Layer Cycler
+        self.tool_layer_switcher = LayerSwitcherTool(iface)    # Alternar Camadas / Layer Switcher
+        self.tool_rename_layer = RenameLayerTool(iface)        # Renomear Layer Rápido / Quick Layer Rename
+        self.tool_prodes = ProdesDownloadTool(iface)           # PRODES Download
+        self.tool_auto_save = AutoSaveTool(iface)              # Auto-Save
+        self.tool_info = InfoTool(iface, _plugin_dir)         # Informações / Info
+        self.tool_measure = MeasureDistanceTool(iface)        # Medir Distância / Measure Distance
+        self.tool_arcgis_export = ArcGISExportTool(iface)    # Exportar para ArcGIS / Export to ArcGIS
+        self.tool_quick_style = QuickStyleTool(iface, _plugin_dir)  # Estilos/Layouts Rápidos / Quick Styles & Layouts
+        self.tool_monitor_export = MonitorExportTool(iface)          # Exportar Monitor Agrícola / Agricultural Monitor Export
+        self.tool_line_analysis = LineAnalysisTool(iface)            # Análise de Linhas / Line Analysis
+        self.tool_carreador = CarreadorTool(iface)                    # Criação de Carreadores / Headland Creation
+        self.tool_send_polygon = SendPolygonToGoogleTool(iface)       # Enviar Polígono Google Earth Pro / Send Polygon to Google Earth Pro
+        self.tool_polygon_reviewer = PolygonReviewerTool(iface)        # Revisor de Polígonos / Polygon Reviewer
+        self.tool_drone_planner = DronePlannerTool(iface)              # Planejador de Voo para Drones / Drone Flight Planner
+        self.tool_flight_export = FlightExportTool(iface)              # Exportar Plano de Voo / Flight Plan Export
+        self.tool_drone_analysis = DroneAnalysisTool(iface)            # Análise de Voo para Drones / Drone Flight Analysis
+        self.tool_drone_mosaic   = DroneAutoMosaicTool(iface)          # Mosaico Automático de Drone / Drone Auto Mosaic
+        self.tool_drone_dem      = DroneDEMTool(iface)                  # Geração de MDE/MDT de Drone / Drone DEM/DTM Generation
+        self.tool_plant_count    = PlantCountTool(iface)                # Contagem de Plantas / Plant Count
+        self.tool_planting_gaps  = PlantingGapsTool(iface)              # Detecção de Falhas de Plantio / Planting Gap Detection
+        self.tool_weed_detection = WeedDetectionTool(iface)             # Detecção de Daninhas / Weed Detection
+        self.tool_plant_height   = PlantHeightTool(iface)               # Altura de Planta / Plant Height CHM
+        self.tool_field_analysis = FieldAnalysisTool(iface)              # Análise Rápida do Talhão / Quick Field Analysis
+        self.tool_brazil_geobase = BrazilGeoBaseTool(iface)              # Brazil Public GeoBase / Base de Dados Pública do Brasil
 
         # Carrega dinamicamente o módulo de diálogo (nome com espaço) / Dynamically load dialog module (name with space)
         try:
@@ -161,196 +206,493 @@ class rthproject:
         return action
 
     def _icon(self, name):
-        """Retorna o caminho absoluto do ícone na pasta do plugin / Return the absolute icon path inside the plugin folder."""
-        return os.path.join(self.plugin_dir, name)
+        """Retorna o caminho absoluto do ícone na pasta icons/ do plugin / Return the absolute icon path inside the plugin icons/ folder."""
+        return os.path.join(self.plugin_dir, 'icons', name)
+
+    def _make_dropdown_btn(self, icon_path, label):
+        """Cria QToolButton dropdown com ícone e tooltip, sem texto visível / Create dropdown QToolButton with icon and tooltip, no visible text."""
+        btn = QToolButton(self.iface.mainWindow())
+        btn.setIcon(QIcon(icon_path))
+        btn.setToolTip(self.tr(label))
+        btn.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        btn.setPopupMode(QToolButton.InstantPopup)
+        return btn
 
     def initGui(self):
         """Inicializa a interface gráfica do plugin / Initialize the plugin graphical interface."""
 
-        # ── RTH Series ────────────────────────────────────────────────────────
-        # Botão que abre o app RTH Series no navegador / Button that opens RTH Series app in browser
-        self.add_action(
-            self._icon('rthseries.png'),
-            text=self.tr(u'RTH Análise / Analysis'),
-            callback=self.open_rth_series,
-            parent=self.iface.mainWindow())
-
-        # ── RTH Series Veg Time ───────────────────────────────────────────────
-        # Botão que abre o app RTH Series Veg Time no navegador / Button that opens RTH Series Veg Time app in browser
-        self.add_action(
-            self._icon('rthvegtime.png'),
-            text=self.tr(u'RTH Vegtime'),
-            callback=self.open_rth_vegtime,
-            parent=self.iface.mainWindow())
-
-        # ── RTH Climate Viewer ────────────────────────────────────────────────
-        # Botão que abre o app RTH Climate Viewer no navegador / Button that opens RTH Climate Viewer app in browser
-        _climate_icon = self._icon('rthclimate.png') if os.path.exists(self._icon('rthclimate.png')) else self._icon('icon.png')
-        self.add_action(
-            _climate_icon,
-            text=self.tr(u'RTH Climate Viewer'),
-            callback=self.open_rth_climate_viewer,
-            parent=self.iface.mainWindow())
-
-        # ── RTH API BROWSER ──────────────────────────────────────────────────
-        # Ícone principal do plugin / Main plugin icon
-        self.add_action(
+        # ── 1. RTH API BROWSER ───────────────────────────────────────────────
+        _browser_action = self.add_action(
             self._icon('icon.png'),
-            text=self.tr(u'RTH API BROWSER'),
+            text=self.tr(u'RTH Catálogo de Cenas / RTH Scene Catalog'),
             callback=self.open_rth_ui,
             parent=self.iface.mainWindow())
-
-        # ── Lat/Long Picker ───────────────────────────────────────────────────
-        # Botão para capturar coordenadas ao clicar no mapa / Button to capture coordinates by clicking on map
-        self.add_action(
-            self._icon('latlong.png'),
-            text=self.tr(u'Capturar Lat/Long / Lat Long Picker'),
-            callback=self.tool_latlong.activate,
-            parent=self.iface.mainWindow())
-
-        # ── Catch JSON ────────────────────────────────────────────────────────
-        # Botão para exportar a geometria selecionada como GeoJSON / Button to export selected geometry as GeoJSON
-        self.add_action(
-            self._icon('get.png'),
-            text=self.tr(u'Capturar JSON / Catch JSON'),
-            callback=self.tool_catch_json.export,
-            parent=self.iface.mainWindow())
-
-        # ── Send to Google Earth Pro ──────────────────────────────────────────
-        # Botão para enviar ponto ao Google Earth Pro / Button to send point to Google Earth Pro
-        self.add_action(
-            self._icon('earth.png'),
-            text=self.tr(u'Enviar ao Google Pro / Send to Google Pro'),
-            callback=self.tool_send_google.activate,
-            parent=self.iface.mainWindow())
-
-        # ── RTH DEM Downloader ───────────────────────────────────────────────
-        # Botão para baixar modelos de elevação do Topodata INPE / Button to download Topodata INPE elevation models
-        # Usa dem.png se existir, senão usa o ícone padrão / Use dem.png if exists, else use default icon
-        _dem_icon = self._icon('dem.png') if os.path.exists(self._icon('dem.png')) else self._icon('icon.png')
-        self.add_action(
-            _dem_icon,
-            text=self.tr(u'RTH Baixar DEM / DEM Downloader'),
-            callback=self.tool_dem.open,
-            parent=self.iface.mainWindow())
-
-        # ── Calc Area (ha) ────────────────────────────────────────────────────
-        # Botão para calcular a área da feição selecionada / Button to calculate selected feature area
-        self.add_action(
-            self._icon('area.png'),
-            text=self.tr(u'Calcular Área / Calc Area (ha)'),
-            callback=self.tool_calc_area.calculate,
-            parent=self.iface.mainWindow())
-
-        # ── Pontos de GPS para Polígono / GPS Points to Polygon ──────────────────────────────────────────
-        # Botão para gerar polígono côncavo a partir de pontos ou CSV / Button to generate concave polygon from points or CSV
-        _ptp_icon = self._icon('pts2poly.png') if os.path.exists(self._icon('pts2poly.png')) else self._icon('icon.png')
-        self.add_action(
-            _ptp_icon,
-            text=self.tr(u'Pontos de GPS para Polígono / GPS Points to Polygon'),
-            callback=self.tool_pts_to_poly.run,
-            parent=self.iface.mainWindow())
-
-        # ── Grid de Pontos / Point Grid ───────────────────────────────────────
-        # Botão para gerar grade de pontos dentro do polígono selecionado / Button to generate point grid inside selected polygon
-        self.add_action(
-            self._icon('grid.png'),
-            text=self.tr(u'Grid de Pontos / Point Grid'),
-            callback=self.tool_point_grid.run,
-            parent=self.iface.mainWindow())
-
-        # ── Export CSV ────────────────────────────────────────────────────────
-        # Botão para exportar camada de pontos para CSV com geometria AS_YX / Button to export point layer to CSV with AS_YX geometry
-        self.add_action(
-            self._icon('gridexport.png'),
-            text=self.tr(u'Exportar CSV / Export CSV'),
-            callback=self.tool_export_csv.run,
-            parent=self.iface.mainWindow())
-
-        # ── Import CSV ────────────────────────────────────────────────────────
-        # Botão para importar CSV com colunas X e Y como camada de pontos / Button to import CSV with X and Y columns as a point layer
-        self.add_action(
-            self._icon('gridimport.png'),
-            text=self.tr(u'Importar CSV / Import CSV'),
-            callback=self.tool_import_csv.run,
-            parent=self.iface.mainWindow())
-
-        # ── Linhas de Plantio/Colheita / Planting/Harvest Lines ───────────────────────────────
-        # Botão para gerar linhas de plantio paralelas dentro do polígono / Button to generate parallel planting lines inside polygon
-        _pl_icon = self._icon('planting.png') if os.path.exists(self._icon('planting.png')) else self._icon('icon.png')
-        self.add_action(
-            _pl_icon,
-            text=self.tr(u'Linhas de Plantio/Colheita / Planting/Harvest Lines'),
-            callback=self.tool_planting_lines.run,
-            parent=self.iface.mainWindow())
-
-        # Registra todas as actions da toolbar nos atalhos de teclado do QGIS
-        # Register all toolbar actions in QGIS keyboard shortcuts
         for action in self.actions:
             self.iface.registerMainWindowAction(action, '')
 
-        # ── Funcionalidades Adicionais / Additional Features ──────────────────
-        # Botão com menu dropdown para ferramentas adicionais / Dropdown menu button for additional tools
-        self._additional_btn = QToolButton(self.iface.mainWindow())
-        _add_icon = self._icon('addfunc.png') if os.path.exists(self._icon('addfunc.png')) else self._icon('icon-geral.png')
-        self._additional_btn.setIcon(QIcon(_add_icon))
-        self._additional_btn.setToolTip(self.tr(u'Funcionalidades Adicionais / Additional Features'))
-        # Abre o menu ao clicar no botão / Opens menu on button click
-        self._additional_btn.setPopupMode(QToolButton.InstantPopup)
+        # Sobrescreve o tooltip no QToolButton real para evitar renderização em negrito
+        # do Qt (que ocorre quando o tooltip vem de QAction automaticamente)
+        from qgis.PyQt.QtWidgets import QToolBar
+        _tb = self.iface.mainWindow().findChild(QToolBar, 'mPluginToolBar')
+        if _tb:
+            for _w in _tb.findChildren(QToolButton):
+                if _w.defaultAction() is _browser_action:
+                    _w.setToolTip(self.tr(u'RTH Catálogo de Cenas / RTH Scene Catalog'))
+                    break
 
-        # Monta o menu de funcionalidades adicionais / Build additional features menu
+        # ── 2. GEE Apps (dropdown) ────────────────────────────────────────────
+        self._gee_btn = self._make_dropdown_btn(
+            self._icon('geeApps.png') if os.path.exists(self._icon('geeApps.png')) else self._icon('icon.png'),
+            u'Aplicativos GEE / GEE Apps')
+        self._gee_menu = QMenu(self._gee_btn)
+
+        _act = QAction(QIcon(self._icon('rthseries.png')), self.tr(u'RTH Análise de Polígono / RTH Polygon Analysis'), self.iface.mainWindow())
+        _act.triggered.connect(self.open_rth_series)
+        self._gee_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('rthvegtime.png')), self.tr(u'RTH Gráficos de Vegetação / RTH Vegtime'), self.iface.mainWindow())
+        _act.triggered.connect(self.open_rth_vegtime)
+        self._gee_menu.addAction(_act)
+
+        _climate_icon = self._icon('rthclimate.png') if os.path.exists(self._icon('rthclimate.png')) else self._icon('icon.png')
+        _act = QAction(QIcon(_climate_icon), self.tr(u'RTH Visualizador de Clima / RTH Climate Viewer'), self.iface.mainWindow())
+        _act.triggered.connect(self.open_rth_climate_viewer)
+        self._gee_menu.addAction(_act)
+
+        _deforest_icon = self._icon('rthDesmatamento.png') if os.path.exists(self._icon('rthDesmatamento.png')) else self._icon('icon.png')
+        _act = QAction(QIcon(_deforest_icon), self.tr(u'RTH Verificar Desmatamento / RTH Deforest Check'), self.iface.mainWindow())
+        _act.triggered.connect(self.open_rth_deforest_check)
+        self._gee_menu.addAction(_act)
+
+        self._gee_btn.setMenu(self._gee_menu)
+        self._gee_widget_action = self.iface.addToolBarWidget(self._gee_btn)
+
+        # ── 3. Agricultura de Precisão (dropdown) ─────────────────────────────
+        self._agro_btn = self._make_dropdown_btn(
+            self._icon('agriculturaPresenciao.png') if os.path.exists(self._icon('agriculturaPresenciao.png')) else self._icon('icon.png'),
+            u'Agricultura de Precisão / Precision Agriculture')
+        self._agro_menu = QMenu(self._agro_btn)
+
+        # ── Ferramentas gerais / General tools ────────────────────────────────
+        _ptp_icon = self._icon('pts2poly.png') if os.path.exists(self._icon('pts2poly.png')) else self._icon('icon.png')
+        _act = QAction(QIcon(_ptp_icon), self.tr(u'Pontos de GPS para Polígono / GPS Points to Polygon'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_pts_to_poly.run)
+        self._agro_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('grid.png')), self.tr(u'Grid de Pontos / Point Grid'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_point_grid.run)
+        self._agro_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('gridexport.png')), self.tr(u'Exportar Grid CSV / Export Grid CSV'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_export_csv.run)
+        self._agro_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('gridimport.png')), self.tr(u'Importar Grid CSV / Import Grid CSV'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_import_csv.run)
+        self._agro_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('vegtalhao.png')), self.tr(u'Indices de Vegetacao em Talhao / Vegetation Indices in Field'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Selecione o talhao, busque cenas Sentinel-2 e compute NDVI/EVI/SAVI/MSAVI/NDWI diretamente do COG remoto / '
+            u'Select field polygon, search Sentinel-2 scenes, and compute NDVI/EVI/SAVI/MSAVI/NDWI directly from remote COG'))
+        _act.triggered.connect(self.tool_field_analysis.run)
+        self._agro_menu.addAction(_act)
+
+        _pl_icon = self._icon('planting.png') if os.path.exists(self._icon('planting.png')) else self._icon('icon.png')
+        _act = QAction(QIcon(_pl_icon), self.tr(u'Linhas de Plantio/Colheita / Planting/Harvest Lines'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_planting_lines.run)
+        self._agro_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('planting analysis.png')), self.tr(u'Analise de Linhas / Line Analysis'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Analisa qualidade e metricas de linhas de plantio/colheita / Analyse quality and metrics of planting/harvest lines'))
+        _act.triggered.connect(self.tool_line_analysis.run)
+        self._agro_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('carreadores.png')), self.tr(u'Criacao de Carreadores / Headland Creation'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Desenhe uma linha sobre o poligono para criar a faixa de carreador / Draw a line over the polygon to create the headland strip'))
+        _act.triggered.connect(self.tool_carreador.run)
+        self._agro_menu.addAction(_act)
+
+        _monitor_submenu = QMenu(self._agro_menu)
+        _monitor_submenu.setTitle(self.tr(u'Exportar para Monitor Agrícola / Export to Agricultural Monitor'))
+        _monitor_submenu.setIcon(make_tool_icon(22))
+        for _monitor_name in MONITORS:
+            _act = QAction(make_brand_icon(_monitor_name, 22), self.tr(_monitor_name), self.iface.mainWindow())
+            _act.triggered.connect(
+                lambda _checked=False, _mn=_monitor_name: self.tool_monitor_export.open(_mn))
+            _monitor_submenu.addAction(_act)
+        self._agro_menu.addMenu(_monitor_submenu)
+
+        # ── Separador: ferramentas de drone / Drone tools separator ───────────
+        self._agro_menu.addSeparator()
+
+        # ── Ferramentas de Drone / Drone tools ────────────────────────────────
+        _act = QAction(QIcon(self._icon('planejamentoDrone.png')), self.tr(u'Planejador de Voo para Drones / Drone Flight Planner'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Gera linhas de voo para mapeamento com drones a partir de parametros da camera e sobreposicao / Generate drone mapping flight lines from camera parameters and overlap settings'))
+        _act.triggered.connect(self.tool_drone_planner.run)
+        self._agro_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('analisedevoodrone.png')), self.tr(u'Analise de Voo para Drones / Drone Flight Analysis'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Estima baterias, metros lineares, tempo de conclusao e outros parametros operacionais do voo / Estimates batteries, linear meters, completion time and other flight operational parameters'))
+        _act.triggered.connect(self.tool_drone_analysis.run)
+        self._agro_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('exportarplanejamentoDrone.png')), self.tr(u'Exportar Plano de Voo / Export Flight Plan'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Exporta linhas de voo e waypoints para KMZ, KML, Litchi CSV, Mission Planner, Shapefile ou GeoPackage / '
+            u'Exports flight lines and waypoints to KMZ, KML, Litchi CSV, Mission Planner, Shapefile or GeoPackage'))
+        _act.triggered.connect(self.tool_flight_export.run)
+        self._agro_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('mosaicoDrone.png')), self.tr(u'Mosaico Automatico de Drone / Drone Auto Mosaic'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Combina tiles raster georreferenciados em um unico ortomosaico via GDAL Merge / '
+            u'Combines georeferenced raster tiles into a single orthomosaic via GDAL Merge'))
+        _act.triggered.connect(self.tool_drone_mosaic.run)
+        self._agro_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('demDrone.png')), self.tr(u'Geracao de MDE/MDT de Drone / Drone DEM/DTM Generation'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Gera MDE/DSM ou MDT/DTM a partir de tiles raster ou nuvem de pontos LAS/LAZ / '
+            u'Generates DEM/DSM or DTM from raster tiles or LAS/LAZ point cloud'))
+        _act.triggered.connect(self.tool_drone_dem.run)
+        self._agro_menu.addAction(_act)
+
+        _analytics_submenu = QMenu(self._agro_menu)
+        _analytics_submenu.setTitle(self.tr(u'Analises para Drone (Em breve) / Drone Analytics (Coming Soon)'))
+        _analytics_submenu.setIcon(QIcon(self._icon('emObras.png')))
+
+        _act = QAction(QIcon(self._icon('emObras.png')),
+                       self.tr(u'Contagem de Plantas (Em breve) / Plant Count (Coming Soon)'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Em breve / Coming soon'))
+        _act.setEnabled(False)
+        _analytics_submenu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('emObras.png')),
+                       self.tr(u'Deteccao de Falhas de Plantio (Em breve) / Planting Gap Detection (Coming Soon)'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Em breve / Coming soon'))
+        _act.setEnabled(False)
+        _analytics_submenu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('emObras.png')),
+                       self.tr(u'Deteccao de Daninhas (Em breve) / Weed Detection (Coming Soon)'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Em breve / Coming soon'))
+        _act.setEnabled(False)
+        _analytics_submenu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('emObras.png')),
+                       self.tr(u'Altura de Planta via DSM - DTM (Em breve) / Plant Height CHM (Coming Soon)'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Em breve / Coming soon'))
+        _act.setEnabled(False)
+        _analytics_submenu.addAction(_act)
+
+        self._agro_menu.addMenu(_analytics_submenu)
+
+        self._agro_btn.setMenu(self._agro_menu)
+        self._agro_widget_action = self.iface.addToolBarWidget(self._agro_btn)
+
+        # ── 4. Bases Geográficas (dropdown) ───────────────────────────────────
+        self._geodata_btn = self._make_dropdown_btn(
+            self._icon('basesGeo.png') if os.path.exists(self._icon('basesGeo.png')) else self._icon('icon.png'),
+            u'Bases Geográficas / Geographic Data')
+        self._geodata_menu = QMenu(self._geodata_btn)
+
+        _dem_icon = self._icon('dem.png') if os.path.exists(self._icon('dem.png')) else self._icon('icon.png')
+        _act = QAction(QIcon(_dem_icon), self.tr(u'RTH Baixar DEM / DEM Downloader'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_dem.open)
+        self._geodata_menu.addAction(_act)
+
+        _prodes_icon = self._icon('baixarProdes.png') if os.path.exists(self._icon('baixarProdes.png')) else self._icon('icon.png')
+        _act = QAction(QIcon(_prodes_icon), self.tr(u'Baixar PRODES / PRODES Download'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_prodes.run)
+        self._geodata_menu.addAction(_act)
+
+        # ── Brazil Public GeoBase ─────────────────────────────────────────────
+        _geobase_icon = self._icon('basesGeoBR.png') if os.path.exists(self._icon('basesGeoBR.png')) else self._icon('icon.png')
+        _act = QAction(QIcon(_geobase_icon), self.tr(u'Base de Dados Publica do Brasil / Brazil Public GeoBase'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(
+            u'Catalogo centralizado de servicos WMS/WFS de orgaos federais brasileiros (INDE): '
+            u'FUNAI, ANA, ICMBio, IBAMA, INCRA, ANM, ANEEL, DNIT, CPRM e outros / '
+            u'Centralised catalog of WMS/WFS services from Brazilian federal agencies (INDE): '
+            u'FUNAI, ANA, ICMBio, IBAMA, INCRA, ANM, ANEEL, DNIT, CPRM and others'))
+        _act.triggered.connect(self.tool_brazil_geobase.run)
+        self._geodata_menu.addAction(_act)
+
+        self._geodata_menu.addSeparator()
+
+        # ── Bases Locais (dinâmico — varre a pasta Mock) ──────────────────────
+        self._mock_dynamic_actions = []
+        self._geodata_menu.aboutToShow.connect(self._rebuild_mock_section)
+
+        self._geodata_btn.setMenu(self._geodata_menu)
+        self._geodata_widget_action = self.iface.addToolBarWidget(self._geodata_btn)
+
+        # ── 5. Estilos Rápidos (dropdown — dinâmico) ──────────────────────────
+        self._styles_btn = self._make_dropdown_btn(
+            self._icon('quickstyles.png') if os.path.exists(self._icon('quickstyles.png')) else self._icon('icon-geral.png'),
+            u'Estilos Rápidos / Quick Styles')
+        self._styles_menu = QMenu(self._styles_btn)
+        self._styles_menu.aboutToShow.connect(
+            lambda: self.tool_quick_style.rebuild_style_menu(self._styles_menu))
+        self._styles_btn.setMenu(self._styles_menu)
+        self._styles_widget_action = self.iface.addToolBarWidget(self._styles_btn)
+
+        # ── 6. Layouts de Impressão Rápidos (dropdown — dinâmico) ─────────────
+        self._layouts_btn = self._make_dropdown_btn(
+            self._icon('quickmaps.png') if os.path.exists(self._icon('quickmaps.png')) else self._icon('icon-geral.png'),
+            u'Layouts de Impressão Rápidos / Quick Print Layouts')
+        self._layouts_menu = QMenu(self._layouts_btn)
+        self._layouts_menu.aboutToShow.connect(
+            lambda: self.tool_quick_style.rebuild_layout_menu(self._layouts_menu))
+        self._layouts_btn.setMenu(self._layouts_menu)
+        self._layouts_widget_action = self.iface.addToolBarWidget(self._layouts_btn)
+
+        # ── 7. Funcionalidades Adicionais (dropdown) ──────────────────────────
+        self._additional_btn = self._make_dropdown_btn(
+            self._icon('addfunc.png') if os.path.exists(self._icon('addfunc.png')) else self._icon('icon-geral.png'),
+            u'Funcionalidades Adicionais / Additional Tools')
         self._additional_menu = QMenu(self._additional_btn)
 
-        # Ação: Alternar Camadas / Layer Cycler
-        # Pai é mainWindow para que o QGIS reconheça a action nos atalhos / Parent is mainWindow so QGIS recognizes the action in shortcuts
+        _act = QAction(QIcon(self._icon('latlong.png')), self.tr(u'Capturar Lat/Long / Lat Long Picker'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_latlong.activate)
+        self._additional_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('latlong.png')), self.tr(u'Identificar Localização / Identify Location'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Clique no mapa para exibir e copiar cidade, município, estado e país via Nominatim/OpenStreetMap / Click on the map to display and copy city, municipality, state and country via Nominatim/OpenStreetMap'))
+        _act.triggered.connect(self.tool_reverse_geocode.activate)
+        self._additional_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('get.png')), self.tr(u'Capturar JSON / Catch JSON'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_catch_json.export)
+        self._additional_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('earth.png')), self.tr(u'Enviar ao Google Pro / Send to Google Pro'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_send_google.activate)
+        self._additional_menu.addAction(_act)
+
+        _earth_poly_icon = self._icon('earth.png') if os.path.exists(self._icon('earth.png')) else self._icon('icon-geral.png')
+        _act = QAction(QIcon(_earth_poly_icon), self.tr(u'Enviar Poligono Google Earth Pro / Send Polygon to Google Earth Pro'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Envia o(s) poligono(s) selecionado(s) ao Google Earth Pro apenas com o tracado (sem preenchimento) / Sends selected polygon(s) to Google Earth Pro outline only (no fill)'))
+        _act.triggered.connect(self.tool_send_polygon.run)
+        self._additional_menu.addAction(_act)
+
+        _reviewer_icon = self._icon('revisorPoligono.png') if os.path.exists(self._icon('revisorPoligono.png')) else self._icon('icon-geral.png')
+        _act = QAction(QIcon(_reviewer_icon), self.tr(u'Revisor de Poligonos / Polygon Reviewer'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Navega pelos poligonos selecionados com zoom automatico e rastreamento de revisao / Navigate selected polygons with auto-zoom and revision tracking'))
+        _act.triggered.connect(self.tool_polygon_reviewer.run)
+        self._additional_menu.addAction(_act)
+
+        _act = QAction(QIcon(self._icon('area.png')), self.tr(u'Calcular Área / Calc Area (ha)'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_calc_area.calculate)
+        self._additional_menu.addAction(_act)
+
+        _perim_icon = self._icon('perim.png') if os.path.exists(self._icon('perim.png')) else self._icon('area.png')
+        _act = QAction(QIcon(_perim_icon), self.tr(u'Calcular Perímetro / Calc Perimeter (m)'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Calcula o perímetro total das feições selecionadas em metros ou km com projeção UTM regional / Calculates total perimeter of selected features in metres or km using regional UTM projection'))
+        _act.triggered.connect(self.tool_calc_perimeter.calculate)
+        self._additional_menu.addAction(_act)
+
+        _measure_icon = self._icon('medirDist.png') if os.path.exists(self._icon('medirDist.png')) else self._icon('icon-geral.png')
+        _act = QAction(QIcon(_measure_icon), self.tr(u'Medir Distância / Measure Distance'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Clique em 2 pontos no mapa para medir a distância em metros / Click 2 points on the map to measure distance in metres'))
+        _act.triggered.connect(self.tool_measure.run)
+        self._additional_menu.addAction(_act)
+
+        _arcgis_icon = self._icon('exportarArcgis.png') if os.path.exists(self._icon('exportarArcgis.png')) else self._icon('icon-geral.png')
+        _act = QAction(QIcon(_arcgis_icon), self.tr(u'Exportar para ArcGIS / Export to ArcGIS'), self.iface.mainWindow())
+        _act.setToolTip(self.tr(u'Exporta camadas do projeto para File Geodatabase (.gdb) compatível com ArcGIS / Export project layers to ArcGIS-compatible File Geodatabase (.gdb)'))
+        _act.triggered.connect(self.tool_arcgis_export.run)
+        self._additional_menu.addAction(_act)
+
+        _rename_icon = self._icon('renomearRapido.png') if os.path.exists(self._icon('renomearRapido.png')) else self._icon('icon-geral.png')
+        self._action_rename = QAction(QIcon(_rename_icon), self.tr(u'★  Renomear Layer Rápido / Quick Layer Rename'), self.iface.mainWindow())
+        self._action_rename.setToolTip(self.tr(u'Adiciona ou remove ★ no início do nome da(s) camada(s) selecionada(s) / Add or remove ★ at the start of selected layer name(s)'))
+        self._action_rename.triggered.connect(self.tool_rename_layer.run)
+        self._additional_menu.addAction(self._action_rename)
+        self.iface.registerMainWindowAction(self._action_rename, '')
+
+        self._additional_menu.addSeparator()
+
         _cycle_icon = self._icon('layercycler.png') if os.path.exists(self._icon('layercycler.png')) else self._icon('icon-geral.png')
-        self._action_cycle = QAction(
-            QIcon(_cycle_icon),
-            self.tr(u'Alternar Camadas / Layer Cycler'),
-            self.iface.mainWindow())
-        self._action_cycle.setToolTip(
-            self.tr(u'Alterna a visibilidade das camadas selecionadas, de baixo para cima, a cada clique / '
-                    u'Cycles selected layer visibility bottom-to-top on each click'))
-        self._action_cycle.triggered.connect(self.tool_layer_cycler.cycle)
-        self._additional_menu.addAction(self._action_cycle)
-        # Registra a action nos atalhos de teclado do QGIS (sem atalho padrão)
-        # Register the action in QGIS keyboard shortcuts (no default shortcut)
+        _cycle_submenu = QMenu(self._additional_menu)
+        _cycle_submenu.setTitle(self.tr(u'Alterar Camadas / Change Layers'))
+        _cycle_submenu.setIcon(QIcon(_cycle_icon))
+
+        self._action_cycle = QAction(QIcon(_cycle_icon), self.tr(u'▶  Próxima Camada / Next Layer'), self.iface.mainWindow())
+        self._action_cycle.setToolTip(self.tr(u'Avança para a próxima camada no grupo ativo / Advance to next layer in active group'))
+        self._action_cycle.triggered.connect(self.tool_layer_switcher.cycle_next)
+        _cycle_submenu.addAction(self._action_cycle)
         self.iface.registerMainWindowAction(self._action_cycle, '')
 
-        # Ação: Resetar ciclo / Reset cycle
+        self._action_cycle_back = QAction(QIcon(_cycle_icon), self.tr(u'◀  Camada Anterior / Previous Layer'), self.iface.mainWindow())
+        self._action_cycle_back.setToolTip(self.tr(u'Retrocede para a camada anterior no grupo ativo / Go back to previous layer in active group'))
+        self._action_cycle_back.triggered.connect(self.tool_layer_switcher.cycle_prev)
+        _cycle_submenu.addAction(self._action_cycle_back)
+        self.iface.registerMainWindowAction(self._action_cycle_back, '')
+
+        _cycle_submenu.addSeparator()
+
+        self._action_next_group = QAction(QIcon(_cycle_icon), self.tr(u'→  Próximo Grupo / Next Group'), self.iface.mainWindow())
+        self._action_next_group.setToolTip(self.tr(u'Troca para o próximo grupo de alternância (modo Múltiplos Grupos) / Switch to next layer group (Multi-Group mode)'))
+        self._action_next_group.triggered.connect(self.tool_layer_switcher.next_group)
+        _cycle_submenu.addAction(self._action_next_group)
+        self.iface.registerMainWindowAction(self._action_next_group, '')
+
+        self._action_prev_group = QAction(QIcon(_cycle_icon), self.tr(u'←  Grupo Anterior / Previous Group'), self.iface.mainWindow())
+        self._action_prev_group.setToolTip(self.tr(u'Troca para o grupo anterior de alternância (modo Múltiplos Grupos) / Switch to previous layer group (Multi-Group mode)'))
+        self._action_prev_group.triggered.connect(self.tool_layer_switcher.prev_group)
+        _cycle_submenu.addAction(self._action_prev_group)
+        self.iface.registerMainWindowAction(self._action_prev_group, '')
+
+        _cycle_submenu.addSeparator()
+
         _reset_icon = self._icon('resetlayercycler.png') if os.path.exists(self._icon('resetlayercycler.png')) else self._icon('icon-geral.png')
-        self._action_cycle_reset = QAction(
-            QIcon(_reset_icon),
-            self.tr(u'Resetar ciclo de camadas / Reset Layer Cycle'),
-            self.iface.mainWindow())
-        self._action_cycle_reset.triggered.connect(self.tool_layer_cycler.reset)
-        self._additional_menu.addAction(self._action_cycle_reset)
-        # Registra também o reset nos atalhos de teclado / Register reset in keyboard shortcuts too
+        self._action_cycle_reset = QAction(QIcon(_reset_icon), self.tr(u'↺  Resetar Ciclo / Reset Cycle'), self.iface.mainWindow())
+        self._action_cycle_reset.setToolTip(self.tr(u'Restaura a visibilidade de todas as camadas do ciclo / Restore visibility of all cycle layers'))
+        self._action_cycle_reset.triggered.connect(self.tool_layer_switcher.reset)
+        _cycle_submenu.addAction(self._action_cycle_reset)
         self.iface.registerMainWindowAction(self._action_cycle_reset, '')
 
-        self._additional_btn.setMenu(self._additional_menu)
+        _cycle_submenu.addSeparator()
 
-        # Adiciona o botão à barra de ferramentas do plugin / Add button to plugin toolbar
+        _config_icon = self._icon('config.png') if os.path.exists(self._icon('config.png')) else self._icon('icon-geral.png')
+        self._action_cycle_config = QAction(QIcon(_config_icon), self.tr(u'Configurar Grupos / Configure Groups'), self.iface.mainWindow())
+        self._action_cycle_config.setToolTip(self.tr(u'Abre a janela de configuração de grupos do Layer Switcher / Open Layer Switcher group configuration'))
+        self._action_cycle_config.triggered.connect(self.tool_layer_switcher.configure)
+        _cycle_submenu.addAction(self._action_cycle_config)
+
+        self._additional_menu.addMenu(_cycle_submenu)
+
+        _autosave_icon = self._icon('AutoSave.png') if os.path.exists(self._icon('AutoSave.png')) else self._icon('icon-geral.png')
+        _autosave_submenu = QMenu(self._additional_menu)
+        _autosave_submenu.setTitle(self.tr(u'Auto-Save'))
+        _autosave_submenu.setIcon(QIcon(_autosave_icon))
+
+        _autosave_toggle_icon = self._icon('AutoSave.png') if os.path.exists(self._icon('AutoSave.png')) else self._icon('icon-geral.png')
+        _autosave_config_icon = self._icon('config.png') if os.path.exists(self._icon('config.png')) else self._icon('icon-geral.png')
+
+        self._action_autosave_toggle = QAction(QIcon(_autosave_toggle_icon), self.tr(u'Habilitar Auto-Save / Enable Auto-Save'), self.iface.mainWindow())
+        self._action_autosave_toggle.setCheckable(True)
+        self._action_autosave_toggle.triggered.connect(self.tool_auto_save.toggle)
+        self.tool_auto_save.set_toggle_action(self._action_autosave_toggle)
+        _autosave_submenu.addAction(self._action_autosave_toggle)
+
+        _act = QAction(QIcon(_autosave_config_icon), self.tr(u'Configurar Intervalo / Configure Interval'), self.iface.mainWindow())
+        _act.triggered.connect(self.tool_auto_save.configure)
+        _autosave_submenu.addAction(_act)
+
+        self._additional_menu.addMenu(_autosave_submenu)
+
+        self._additional_btn.setMenu(self._additional_menu)
         self._additional_widget_action = self.iface.addToolBarWidget(self._additional_btn)
+
+        # ── 7. Informações / Info ─────────────────────────────────────────────
+        _info_icon = self._icon('info.png') if os.path.exists(self._icon('info.png')) else self._icon('icon-geral.png')
+        self._info_btn = self._make_dropdown_btn(_info_icon, u'Informações / Info')
+        self._info_btn.setPopupMode(QToolButton.DelayedPopup)
+        self._info_btn.clicked.connect(self.tool_info.run)
+        self._info_widget_action = self.iface.addToolBarWidget(self._info_btn)
 
     def unload(self):
         """Remove o plugin da interface do QGIS / Remove the plugin from the QGIS interface."""
-        # Remove cada ação do menu, toolbar e atalhos de teclado / Remove each action from menu, toolbar and keyboard shortcuts
+        if hasattr(self, 'tool_auto_save'):
+            self.tool_auto_save.stop()
+        if hasattr(self, 'tool_layer_switcher'):
+            self.tool_layer_switcher.stop()
         for action in self.actions:
             self.iface.removePluginMenu(self.menu, action)
             self.iface.removeToolBarIcon(action)
             self.iface.unregisterMainWindowAction(action)
-        # Desregistra as actions dos atalhos de teclado do QGIS / Unregister actions from QGIS keyboard shortcuts
-        if hasattr(self, '_action_cycle'):
-            self.iface.unregisterMainWindowAction(self._action_cycle)
-        if hasattr(self, '_action_cycle_reset'):
-            self.iface.unregisterMainWindowAction(self._action_cycle_reset)
-        # Remove o botão de Funcionalidades Adicionais da toolbar / Remove Additional Features button from toolbar
-        if hasattr(self, '_additional_widget_action') and self._additional_widget_action:
-            from qgis.PyQt.QtWidgets import QToolBar
-            toolbar = self.iface.mainWindow().findChild(QToolBar, 'mPluginToolBar')
-            if toolbar:
-                toolbar.removeAction(self._additional_widget_action)
+        for attr in ('_action_rename', '_action_cycle', '_action_cycle_back',
+                     '_action_next_group', '_action_prev_group',
+                     '_action_cycle_reset', '_action_cycle_config'):
+            if hasattr(self, attr):
+                self.iface.unregisterMainWindowAction(getattr(self, attr))
+        from qgis.PyQt.QtWidgets import QToolBar
+        toolbar = self.iface.mainWindow().findChild(QToolBar, 'mPluginToolBar')
+        for attr in ('_gee_widget_action', '_agro_widget_action', '_geodata_widget_action',
+                     '_styles_widget_action', '_layouts_widget_action',
+                     '_additional_widget_action', '_info_widget_action'):
+            if hasattr(self, attr) and getattr(self, attr) and toolbar:
+                toolbar.removeAction(getattr(self, attr))
+
+    def _rebuild_mock_section(self):
+        """Reconstrói os itens dinâmicos da pasta Mock no menu de Bases Geográficas.
+        Rebuild dynamic Mock-folder items in the Geographic Data menu.
+        """
+        for act in self._mock_dynamic_actions:
+            self._geodata_menu.removeAction(act)
+        self._mock_dynamic_actions.clear()
+
+        mock_dir = os.path.join(self.plugin_dir, 'Mock')
+        _exts = ('.gpkg', '.shp', '.geojson', '.json', '.kml', '.kmz')
+        files = []
+        if os.path.isdir(mock_dir):
+            files = sorted(
+                f for f in os.listdir(mock_dir)
+                if os.path.isfile(os.path.join(mock_dir, f))
+                and f.lower().endswith(_exts)
+            )
+
+        if files:
+            for fname in files:
+                label = os.path.splitext(fname)[0].replace('_', ' ').replace('-', ' ')
+                act = QAction(label, self._geodata_menu)
+                act.triggered.connect(
+                    lambda checked, fn=fname, lbl=label: self._load_mock_layer(fn, lbl))
+                self._geodata_menu.addAction(act)
+                self._mock_dynamic_actions.append(act)
+        else:
+            act = QAction(
+                self.tr(u'Nenhum arquivo na pasta Mock / No files in Mock folder'),
+                self._geodata_menu)
+            act.setEnabled(False)
+            self._geodata_menu.addAction(act)
+            self._mock_dynamic_actions.append(act)
+
+        sep = self._geodata_menu.addSeparator()
+        self._mock_dynamic_actions.append(sep)
+
+        hint = QAction(
+            self.tr(u'↳  Adicione .gpkg/.shp à pasta Mock para aparecerem aqui  /  Add .gpkg/.shp to Mock folder'),
+            self._geodata_menu)
+        hint.setEnabled(False)
+        self._geodata_menu.addAction(hint)
+        self._mock_dynamic_actions.append(hint)
+
+        open_act = QAction(
+            self.tr(u'Abrir pasta Mock / Open Mock folder'), self._geodata_menu)
+        open_act.triggered.connect(
+            lambda: QDesktopServices.openUrl(
+                QUrl.fromLocalFile(os.path.join(self.plugin_dir, 'Mock'))))
+        self._geodata_menu.addAction(open_act)
+        self._mock_dynamic_actions.append(open_act)
+
+    def _load_mock_layer(self, filename, display_name):
+        """Carrega um arquivo vetorial da pasta Mock e adiciona ao projeto.
+        Load a vector file from the Mock folder and add to project.
+        """
+        from qgis.core import QgsVectorLayer, QgsProject
+        from qgis.PyQt.QtWidgets import QMessageBox
+        path = os.path.join(self.plugin_dir, 'Mock', filename)
+        if not os.path.exists(path):
+            QMessageBox.warning(
+                None, 'RTH Bases Geográficas',
+                'Arquivo não encontrado / File not found:\n{}'.format(path))
+            return
+        from core.rth_layer_utils import collapse_layer
+        layer = QgsVectorLayer(path, display_name, 'ogr')
+        if layer.isValid():
+            QgsProject.instance().addMapLayer(layer)
+            collapse_layer(layer)
+            self.iface.messageBar().pushMessage(
+                'RTH Bases Geográficas',
+                '{} carregado / loaded'.format(display_name),
+                level=Qgis.MessageLevel.Info, duration=4)
+        else:
+            QMessageBox.warning(
+                None, 'RTH Bases Geográficas',
+                'Erro ao carregar / Error loading:\n{}'.format(path))
 
     def open_rth_series(self):
         """Abre o aplicativo RTH Series no navegador padrão / Open RTH Series app in the default browser."""
@@ -364,12 +706,16 @@ class rthproject:
         """Abre o aplicativo RTH Climate Viewer no navegador padrão / Open RTH Climate Viewer app in the default browser."""
         QDesktopServices.openUrl(QUrl('https://luciano-ufsc.projects.earthengine.app/view/rthseriesclimateviewer'))
 
+    def open_rth_deforest_check(self):
+        """Abre o aplicativo RTH Deforest Check no navegador padrão / Open RTH Deforest Check app in the default browser."""
+        QDesktopServices.openUrl(QUrl('https://luciano-ufsc.projects.earthengine.app/view/rthseriesmonth'))
+
     def open_rth_ui(self):
         """Abre o diálogo principal do RTH API BROWSER / Open the main RTH API BROWSER dialog."""
         # Verifica se o módulo de diálogo foi carregado / Check if dialog module was loaded
         if self.dialog_class is None:
             self.iface.messageBar().pushMessage(
-                'RTH', 'Módulo de diálogo não disponível / Dialog module not available', level=1)
+                'RTH', 'Módulo de diálogo não disponível / Dialog module not available', level=Qgis.MessageLevel.Warning)
             return
         try:
             # Cria o diálogo se ainda não existir, passando a interface QGIS / Create dialog if it does not exist yet, passing QGIS interface
@@ -383,4 +729,4 @@ class rthproject:
             self.dlg.activateWindow()
         except Exception as e:
             # Exibe o erro na barra de mensagens / Show error in the message bar
-            self.iface.messageBar().pushMessage('RTH', str(e), level=1)
+            self.iface.messageBar().pushMessage('RTH', str(e), level=Qgis.MessageLevel.Warning)

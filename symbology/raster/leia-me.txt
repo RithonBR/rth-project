@@ -1,0 +1,13 @@
+Coloque aqui os arquivos .qml de simbologia para camadas RASTER.
+Place .qml symbology files for RASTER layers here.
+
+Exemplo / Example:
+  declividade_30m.qml
+  ndvi.qml
+  altimetria.qml
+
+Como criar / How to create:
+  1. Estilize a camada raster no QGIS  /  Style the raster layer in QGIS
+  2. Propriedades da Camada > Estilo > Salvar Estilo...  /  Layer Properties > Style > Save Style...
+  3. Formato: QGIS Layer Style File (.qml)  /  Format: QGIS Layer Style File (.qml)
+  4. Salve nesta pasta  /  Save in this folder

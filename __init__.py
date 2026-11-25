@@ -23,6 +23,17 @@ This script initializes the plugin, making it known to QGIS.
 """
 
 
+# Aplica patches de compatibilidade PyQt5/PyQt6 (QGIS 3.x / 4.x) antes de qualquer import de UI
+# Apply PyQt5/PyQt6 compatibility patches (QGIS 3.x / 4.x) before any UI import
+import os as _os
+import importlib.util as _ilu
+_compat_path = _os.path.join(_os.path.dirname(__file__), 'compat.py')
+_compat_spec = _ilu.spec_from_file_location('rthproject_compat', _compat_path)
+_compat_mod  = _ilu.module_from_spec(_compat_spec)
+_compat_spec.loader.exec_module(_compat_mod)
+del _os, _ilu, _compat_path, _compat_spec, _compat_mod
+
+
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
     """Ponto de entrada do QGIS — carrega e instancia a classe principal do plugin / QGIS entry point — loads and instantiates the main plugin class.
