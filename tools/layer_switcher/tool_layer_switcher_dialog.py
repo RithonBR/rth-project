@@ -127,7 +127,7 @@ class _GroupPanel(QWidget):
         self.list_project.clear()
         layers = sorted(
             QgsProject.instance().mapLayers().values(),
-            key=lambda l: l.name().lower()
+            key=lambda lyr: lyr.name().lower()
         )
         for lyr in layers:
             if lyr.id() not in existing_ids:

@@ -915,7 +915,7 @@ class _MLWorker(QThread):
 
             if self._save_matrix:
                 mat_path = os.path.splitext(self._out_path)[0] + '_matriz_confusao.csv'
-                header = 'Classes: ' + ','.join(str(int(l)) for l in labels)
+                header = 'Classes: ' + ','.join(str(int(lb)) for lb in labels)
                 np.savetxt(mat_path, matrix, delimiter=',', fmt='%d', header=header)
                 self.status.emit(
                     'Matriz salva em {} / Matrix saved to {}'.format(

@@ -43,7 +43,7 @@ class QuickStyleTool:
             self._on_layout_removed)
 
     def _on_layout_removed(self, layout):
-        self._loaded_layouts = [l for l in self._loaded_layouts if l is not layout]
+        self._loaded_layouts = [lo for lo in self._loaded_layouts if lo is not layout]
 
     def tr(self, msg):
         return QCoreApplication.translate('QuickStyleTool', msg)
@@ -198,8 +198,8 @@ class QuickStyleTool:
             # get a fresh load with the current canvas state.
             existing = project.layoutManager().layoutByName(layout_name)
             if existing is not None:
-                self._loaded_layouts = [l for l in self._loaded_layouts
-                                        if l is not existing]
+                self._loaded_layouts = [lo for lo in self._loaded_layouts
+                                        if lo is not existing]
                 project.layoutManager().removeLayout(existing)
 
             layout = QgsPrintLayout(project)

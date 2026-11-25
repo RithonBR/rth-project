@@ -104,10 +104,10 @@ def _arrow_angle(heading, lado):
         h = float(heading or 0)
     except (ValueError, TypeError):
         h = 0.0
-    l = (lado or '').strip().lower()
-    if l in ('direita', 'd', 'right', 'r'):
+    lado_str = (lado or '').strip().lower()
+    if lado_str in ('direita', 'd', 'right', 'r'):
         return (h + 90.0) % 360.0
-    if l in ('esquerda', 'e', 'left', 'l'):
+    if lado_str in ('esquerda', 'e', 'left', 'l'):
         return (h - 90.0 + 360.0) % 360.0
     # 'ambos', 'both' ou qualquer valor não reconhecido → aponta para o heading
     return h % 360.0

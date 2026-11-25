@@ -428,8 +428,8 @@ class DroneFlightPlannerDialog(QDialog):
         gcam.setColumnStretch(1, 1)
 
         def _clbl(text, row):
-            l = QLabel(text); l.setStyleSheet('font-size:10px;')
-            gcam.addWidget(l, row, 0)
+            lbl = QLabel(text); lbl.setStyleSheet('font-size:10px;')
+            gcam.addWidget(lbl, row, 0)
 
         _clbl('Largura sensor / Sensor W (mm):', 0)
         self.spin_sw = QDoubleSpinBox()
@@ -481,8 +481,8 @@ class DroneFlightPlannerDialog(QDialog):
         gfl.setColumnStretch(1, 1)
 
         def _flbl(text, row):
-            l = QLabel(text); l.setStyleSheet('font-size:11px;')
-            gfl.addWidget(l, row, 0)
+            lbl = QLabel(text); lbl.setStyleSheet('font-size:11px;')
+            gfl.addWidget(lbl, row, 0)
 
         _flbl('Altitude AGL (m):', 0)
         self.spin_alt = QDoubleSpinBox()
@@ -573,11 +573,11 @@ class DroneFlightPlannerDialog(QDialog):
         gprev.setColumnStretch(1, 1)
 
         def _prev_row(label, row):
-            l = QLabel(label + ':'); l.setStyleSheet('color:#555;font-size:10px;')
+            lbl = QLabel(label + ':'); lbl.setStyleSheet('color:#555;font-size:10px;')
             v = QLabel('—')
             v.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             v.setStyleSheet('font-weight:bold;font-size:10px;')
-            gprev.addWidget(l, row, 0)
+            gprev.addWidget(lbl, row, 0)
             gprev.addWidget(v, row, 1)
             return v
 

@@ -14,6 +14,7 @@ Or run standalone (needs QGIS_PREFIX_PATH set):
 import os
 import sys
 import tempfile
+import time
 import traceback
 import urllib.error
 import urllib.parse
@@ -1076,7 +1077,8 @@ def section_ana1_network():
     # Parse WMS layers
     layers = []
     ns = 'http://www.opengis.net/wms' if root.tag.startswith('{') else ''
-    tag = lambda t: f'{{{ns}}}{t}' if ns else t
+    def tag(t):
+        return f'{{{ns}}}{t}' if ns else t
     for elem in root.iter(tag('Layer')):
         name_el  = elem.find(tag('Name'))
         title_el = elem.find(tag('Title'))
@@ -1088,10 +1090,10 @@ def section_ana1_network():
 
     # Deduplicate
     seen, unique = set(), []
-    for l in layers:
-        if l['name'] not in seen:
-            seen.add(l['name'])
-            unique.append(l)
+    for lyr in layers:
+        if lyr['name'] not in seen:
+            seen.add(lyr['name'])
+            unique.append(lyr)
 
     p(f'WMS layers found: {len(unique)}')
     for i, l in enumerate(unique[:10]):
@@ -1367,9 +1369,9 @@ def section_anatel2_parse(net_results):
                     layers.append({'name': n.text.strip(),
                                    'title': (t.text or n.text).strip() if t is not None else n.text.strip()})
             seen, unique = set(), []
-            for l in layers:
-                if l['name'] not in seen:
-                    seen.add(l['name']); unique.append(l)
+            for lyr in layers:
+                if lyr['name'] not in seen:
+                    seen.add(lyr['name']); unique.append(lyr)
             p(f'WMS: {len(unique)} camadas únicas')
             for i, l in enumerate(unique[:5]):
                 p(f"  [{i+1}] {l['name']}  |  {l['title'][:60]}")
@@ -1462,7 +1464,7 @@ def section_anatel3_virtualize(picks):
             tmp.write(xml); tmp.close()
             qlyr = QgsRasterLayer(tmp.name, title, 'gdal')
             try: _os.unlink(tmp.name)
-            except: pass  # nosec B110
+            except Exception: pass  # nosec B110
             p(f'    → provider nativo falhou, tentou GDAL WMS')
         info = _layer_info(qlyr)
         _print_info(info, '    ')

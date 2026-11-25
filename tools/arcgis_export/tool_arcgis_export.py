@@ -240,8 +240,8 @@ class ArcGISExportTool:
         else:
             all_layers = list(project.mapLayers().values())
 
-        vector_layers = [l for l in all_layers if isinstance(l, QgsVectorLayer)]
-        raster_layers = ([l for l in all_layers if isinstance(l, QgsRasterLayer)]
+        vector_layers = [lyr for lyr in all_layers if isinstance(lyr, QgsVectorLayer)]
+        raster_layers = ([lyr for lyr in all_layers if isinstance(lyr, QgsRasterLayer)]
                          if params['include_raster'] else [])
 
         total = len(vector_layers) + len(raster_layers)

@@ -702,7 +702,7 @@ class FlightExportDialog(QDialog):
         Export to Shapefile (one file per layer) or GeoPackage (all layers in one file).
         All layers are reprojected to WGS-84.
         """
-        layers = [(l, l.name()) for l in (lines_lyr, wp_lyr, coverage_lyr) if l is not None]
+        layers = [(lyr, lyr.name()) for lyr in (lines_lyr, wp_lyr, coverage_lyr) if lyr is not None]
         if not layers:
             raise RuntimeError('Nenhuma camada selecionada / No layer selected')
 

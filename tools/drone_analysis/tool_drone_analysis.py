@@ -569,9 +569,9 @@ class DroneAnalysisDialog(QDialog):
         gfp.setColumnStretch(1, 1)
 
         def _lbl(text, row):
-            l = QLabel(text)
-            l.setStyleSheet('font-size:10px;')
-            gfp.addWidget(l, row, 0)
+            lbl = QLabel(text)
+            lbl.setStyleSheet('font-size:10px;')
+            gfp.addWidget(lbl, row, 0)
 
         _lbl('Velocidade / Speed (m/s):', 0)
         self.spin_speed = QDoubleSpinBox()

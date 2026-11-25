@@ -118,7 +118,8 @@ def _parse_wms(xml_text: str) -> list:
         root = ET.fromstring(xml_text)  # nosec B314
         # Handle both namespaced and non-namespaced responses
         ns = _WMS_NS if root.tag.startswith('{') else ''
-        tag = lambda t: f'{{{ns}}}{t}' if ns else t
+        def tag(t):
+            return f'{{{ns}}}{t}' if ns else t
 
         for elem in root.iter(tag('Layer')):
             name_el = elem.find(tag('Name'))
@@ -156,7 +157,8 @@ def _parse_wfs(xml_text: str) -> list:
             ns = _WFS1_NS
         else:
             ns = ''
-        tag = lambda t: f'{{{ns}}}{t}' if ns else t
+        def tag(t):
+            return f'{{{ns}}}{t}' if ns else t
 
         for ft in root.iter(tag('FeatureType')):
             name_el  = ft.find(tag('Name'))

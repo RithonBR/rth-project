@@ -234,7 +234,7 @@ def section_4_wcs_download():
         tf.write(xml); tf.close()
         rlyr = QgsRasterLayer(tf.name, target, 'gdal')
         try: os.unlink(tf.name)
-        except: pass  # nosec B110
+        except Exception: pass  # nosec B110
         p(f'  [GDAL WCS 1.0.0] isValid={rlyr.isValid()}')
 
     if not rlyr or not rlyr.isValid():
