@@ -25,7 +25,10 @@ Two independent functions:
 import math
 import webbrowser
 
-import sip
+try:
+    import sip
+except ImportError:
+    from PyQt6 import sip  # QGIS 4 / PyQt6
 
 from qgis.core import (
     Qgis, QgsProject, QgsRasterLayer,
