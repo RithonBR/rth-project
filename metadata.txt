@@ -7,7 +7,7 @@ name=RTH PROJECT
 qgisMinimumVersion=3.40.7
 qgisMaximumVersion=4.99
 description=60 ferramentas integradas para sensoriamento remoto e agricultura de precisão. O RTH Catálogo de Cenas conecta o QGIS a múltiplos catálogos STAC — INPE/BDC, Planetary Computer e AWS Element84 — para buscar, visualizar e baixar imagens de Sentinel-2, Landsat, CBERS e Amazônia-1 diretamente no QGIS, calcular índices de vegetação (NDVI, EVI, SAVI, MSAVI, NDWI ou fórmula livre) lendo apenas o talhão selecionado via COG e monitorar desmatamento em tempo real. O GeoBase centraliza o acesso a dados públicos brasileiros de FUNAI, ANA, ICMBio, IBAMA, INCRA, ANEEL e mais de 30 fontes WMS/WFS em um catálogo integrado, incluindo modelos de elevação (SRTM, Copernicus, AW3D) e dados PRODES. Para agricultura de precisão: geração de linhas de plantio e colheita com suporte a curvas, carreadores, exportação de planos de manejo para 8 marcas de monitores agrícolas com formato ISO-XML para John Deere e análise de azimute e regularidade de linhas. Para drone: planejador de missão com cálculo automático de GSD e sobreposição, estimativa de baterias e tempo de voo, exportação para Litchi, Mission Planner e KMZ, geração de ortomosaicos e MDEs via GDAL. Quatro aplicativos Google Earth Engine acessíveis direto do menu cobrem análise temporal, séries de vegetação, dados climáticos e monitoramento de desmatamento. Ferramentas de automação — ciclo de visibilidade de camadas, cálculo de área em hectares com UTM regional automático, revisor de polígonos, integração com Google Earth Pro e exportação para File Geodatabase — agilizam o fluxo diário do profissional de sensoriamento remoto.
-version=1.3.2
+version=1.3.3
 author=Luciano "Rithon" Junior
 email=lucianoufscagve@gmail.com
 
@@ -22,7 +22,7 @@ repository=https://github.com/RithonBR/rth-project
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 changelog=
-    1.3.2 (2026-11-25)
+    1.3.3 (2026-11-25)
     BR Apos atualizar o plugin, reinicie o QGIS para que as mudancas tenham efeito. Sem o reincio, o QGIS continua usando a versao anterior em memoria.
     US After updating the plugin, restart QGIS for the changes to take effect. Without restarting, QGIS keeps running the previous version from memory.
     BR Refatoracao geral de modulos: revisao de imports e ajustes de compatibilidade em core, tools e testes.
@@ -35,10 +35,6 @@ changelog=
     US Import Validation Points: stability fixes.
     BR Layer Switcher: correcoes no dialogo.
     US Layer Switcher: dialog fixes.
-    
-    1.3.1 (2026-11-03)
-    BR Após atualizar o plugin, reinicie o QGIS para que as mudanças tenham efeito. Sem o reinício, o QGIS continua usando a versão anterior em memória.
-    US After updating the plugin, restart QGIS for the changes to take effect. Without restarting, QGIS keeps running the previous version from memory.
     BR Monitor de Desmatamento — Nova aba Downloads: acompanhe todos os downloads com barra de progresso, botão de cancelar e rótulo de status em tempo real. O download é recortado automaticamente ao talhão selecionado (igual à miniatura), sem baixar a cena inteira.
     US Deforestation Monitor — New Downloads tab: track all downloads with a progress bar, cancel button and real-time status label. The download is automatically clipped to the selected field polygon (same as the thumbnail), without downloading the full scene.
     BR RTH Catálogo de Cenas — Sentinel-1 removido da lista de satélites disponíveis; coleções MAPAQUALI (Sentinel-2 BDC) removidas do catálogo dinâmico.
@@ -49,10 +45,6 @@ changelog=
     US Fix: internal errors in DownloadThread are now reported in the QGIS message bar instead of being silently discarded.
     BR Informações — Nova aba "Como citar?" com formatos ABNT, APA e BibTeX para referenciar o plugin em trabalhos acadêmicos.
     US Info — New "How to cite?" tab with ABNT, APA and BibTeX formats for referencing the plugin in academic work.
-
-    1.2.9 (2026-06-26)
-    BR Após atualizar o plugin, reinicie o QGIS para que as mudanças tenham efeito. Sem o reinício, o QGIS continua usando a versão anterior em memória.
-    US After updating the plugin, restart QGIS for the changes to take effect. Without restarting, QGIS keeps running the previous version from memory.
     BR RTH API Browser — Nova funcionalidade: Composição Personalizada / Custom Composition. Arraste bandas para os slots R, G e B via drag-and-drop, aplique sem salvar ou salve com nome para reutilizar. Suporte a bandas extras monoband no download.
     US RTH API Browser — New feature: Custom Composition. Drag bands to R, G and B slots via drag-and-drop, apply without saving or save with a name for later reuse. Extra monoband download supported for additional bands.
 
