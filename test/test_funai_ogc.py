@@ -1132,7 +1132,7 @@ def section_ana2_qgis_network():
                 reply.abort(); p('  ⏳ Timed out'); return
             err_obj = reply.error()
             try:    err_int = err_obj.value
-            except: err_int = int(err_obj)
+            except Exception: err_int = int(err_obj)  # nosec B110
             code = None
             for attr in ('Attribute.HttpStatusCodeAttribute', 'HttpStatusCodeAttribute'):
                 try:
